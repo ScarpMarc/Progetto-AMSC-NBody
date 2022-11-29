@@ -8,7 +8,7 @@
 /// Represents the force interactions between all the particles and provides methods for calculating resulting forces that hide parallelism.
 /// </summary>
 /// <typeparam name="vecDim">Dimension of the vectors</typeparam>
-template <size_t dim>
+template <unsigned int dim>
 class ForceMatrix
 {
 public:

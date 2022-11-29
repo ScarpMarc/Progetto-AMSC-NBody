@@ -7,7 +7,7 @@
 /// Represents the basic particles that interact in the world
 /// </summary>
 /// <typeparam name="dim">Dimension (1D, 2D, 3D...).</typeparam>
-template <size_t dim>
+template <unsigned int dim>
 class Particle
 {
 public:

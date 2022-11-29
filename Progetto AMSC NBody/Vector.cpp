@@ -1,6 +1,6 @@
 #include "Vector.h"
 
-template <size_t dim>
+template <unsigned int dim>
 double Vector<dim>::eu_norm() const
 {
 	double sum = 0;

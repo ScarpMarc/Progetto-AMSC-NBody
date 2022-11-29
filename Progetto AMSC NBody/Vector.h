@@ -1,7 +1,8 @@
 #pragma once
 #include <array>
+#include <iostream>
 
-template <size_t dim>
+template <unsigned int dim>
 class Vector
 {
 public:
@@ -21,7 +22,7 @@ public:
 	/// Retrieves the vector component corresponding to the argument, starting from 0.
 	/// </summary>
 	/// <typeparam name="dim">The component to retrieve</typeparam>
-	const double& operator[](const size_t& comp) const
+	const double& operator[](const unsigned int& comp) const
 	{
 		return components[comp];
 	}
@@ -51,51 +52,40 @@ public:
 		return sum;
 	}
 
-	constexpr Vector<1>& operator^=(const Vector<1>&)
+	constexpr Vector<dim>& operator^=(const Vector<dim>& other)
 	{
-		components[0] = 0;
+		// Not using a cascading switch statement in fear that the compiler may actually perform this evaluation...
+		if (dim == 1)
+		{
+			components[0] = 0;
+		}
+		else if (dim == 2)
+		{
+			components[2] = this[0] * other[1] - this[1] * other[0];
+			components[0] = 0;
+			components[1] = 0;
+		}
+		else if (dim == 3)
+		{
+			components[0] = this[1] * other[2] - this[2] * other[1];
+			components[1] = this[2] * other[0] - this[0] * other[2];
+			components[2] = this[0] * other[1] - this[1] * other[0];
+		}
 		return this;
 	}
 
-	constexpr friend double operator^(const Vector<1>&, const Vector<1>&)
+	const friend Vector<dim>& operator^(const Vector<dim>& lhs, const Vector<dim>& rhs)
 	{
-		return 0;
-	}
-
-	constexpr Vector<2>& operator^=(const Vector<2>& other)
-	{
-		components[2] = this[0] * other[1] - this[1] * other[0];
-		components[0] = 0;
-		components[1] = 0;
-		return this;
-	}
-
-	constexpr friend Vector<2> operator^(const Vector<2>& lhs, const Vector<2>& rhs)
-	{
-		Vector<dim> out(lhs);
-		out ^= rhs;
-		return out;
-	}
-
-	/// <summary>
-	/// Cross (vector) product that stores its result into this object.
-	/// </summary>
-	constexpr Vector<3>& operator^=(const Vector<3>& other)
-	{
-		components[0] = this[1] * other[2] - this[2] * other[1];
-		components[1] = this[2] * other[0] - this[0] * other[2];
-		components[2] = this[0] * other[1] - this[1] * other[0];
-		return this;
-	}
-
-	/// <summary>
-	/// Cross (vector) product
-	/// </summary>
-	constexpr friend Vector<3>& operator^(const Vector<3>& lhs, const Vector<3>& rhs)
-	{
-		Vector<dim> out(lhs);
-		out ^= rhs;
-		return out;
+		if (dim == 1)
+		{
+			return Vector<1>();
+		}
+		else if (dim == 2 || dim == 3)
+		{
+			Vector<dim> out(lhs);
+			out ^= rhs;
+			return out;
+		}
 	}
 
 	constexpr Vector<3>& operator/(const double& val) const
@@ -113,3 +103,13 @@ public:
 private:
 	std::array<double, dim> components;
 };
+
+template <unsigned int dim>
+std::ostream& operator<<(std::ostream& out, const Vector<dim>& vec)
+{
+	out << "[ ";
+	for (unsigned int i = 0; i < dim; ++i) out << vec[i] << " ";
+	out << "]";
+
+	return out;
+}
