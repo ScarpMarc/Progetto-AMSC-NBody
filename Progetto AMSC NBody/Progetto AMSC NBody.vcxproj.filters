@@ -21,6 +21,9 @@
     <ClCompile Include="Particle.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="Vector.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
@@ -30,6 +33,9 @@
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="Types.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>

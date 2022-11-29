@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Particle.h"
+#include "Vector.h"
 
 int main()
 {

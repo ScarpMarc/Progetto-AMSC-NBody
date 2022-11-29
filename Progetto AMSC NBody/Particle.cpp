@@ -2,7 +2,7 @@
 #include "Particle.h"
 
 template<size_t dim>
-Vec<dim> Particle<dim>::calcNewPosition(const unsigned int& delta_time)
+Vector<dim> Particle<dim>::calcNewPosition(const unsigned int& delta_time)
 {
 	_updateSpeed(delta_time);
 	_updatePos(delta_time);
@@ -10,7 +10,7 @@ Vec<dim> Particle<dim>::calcNewPosition(const unsigned int& delta_time)
 }
 
 template<size_t dim>
-inline void Particle<dim>::updateResultingForce(const Vec<dim>& resulting_force)
+inline void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
 {
 	// TODO dividere ogni elemento del vettore per la massa in parallelo? Si può fare direttamente resulting_force/mass?
 }
