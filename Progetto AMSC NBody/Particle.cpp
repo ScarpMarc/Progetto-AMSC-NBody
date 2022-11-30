@@ -10,17 +10,28 @@ Vector<dim> Particle<dim>::calcNewPosition(const unsigned int& delta_time)
 }
 
 template<unsigned int dim>
-inline void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
+void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
 {
-	// TODO dividere ogni elemento del vettore per la massa in parallelo? Si può fare direttamente resulting_force/mass?
+	for (int i = 0; i < dim; ++i)
+	{
+		accel[i] = resulting_force[i] / mass;
+	}
 }
 
 template<unsigned int dim>
 void Particle<dim>::_updateSpeed(const unsigned int& delta_time)
 {
+	for (int i = 0; i < dim; ++i) 
+	{
+		speed[i] = accel[i] * delta_time;
+	}
 }
 
 template<unsigned int dim>
 void Particle<dim>::_updatePos(const unsigned int& delta_time)
 {
+	for (int i = 0; i < dim; ++i)
+	{
+		pos[i] = speed[i] * delta_time;
+	}
 }
