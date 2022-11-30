@@ -11,6 +11,23 @@ template <unsigned int dim>
 class Particle
 {
 public:
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name =
+	Particle(unsigned int id,
+			Vector<dim> position,
+			Vector <dim> speed,
+			Vector <dim> acceleration,
+			double mass):
+			ID(id),
+			pos(position),
+			speed(speed),
+			accel(acceleration),
+			mass(mass)
+	{}
+
 	/// <summary>
 	/// Calculates the force exerted by the other particle on this particle.
 	/// </summary>
@@ -34,14 +51,28 @@ public:
 	/// <param name="resulting_force">Resulting force from the matrix</param>
 	void updateResultingForce(const Vector<dim>& resulting_force);
 
+	/// <summary>
+	/// Gets ID number
+	/// </summary>
+	unsigned int get_particle_id(){return ID;}
+
+	/// <summary>
+	/// Gets position, speed and acceleration
+	/// </summary>
+	Vector<dim> get_position(){return pos;}
+	Vector<dim> get_speed(){return speed;}
+	Vector<dim> get_acc(){return accel;}
+
 private:
 	void _updateSpeed(const unsigned int& delta_time);
 	void _updatePos(const unsigned int& delta_time);
 
+	unsigned int ID; // particle id number
+
 	Vector<dim> pos;
 	Vector<dim> speed;
 	Vector<dim> accel;
-	double mass;
+	const double mass;
 
 	// TODO Set value
 	// Mass constant k
