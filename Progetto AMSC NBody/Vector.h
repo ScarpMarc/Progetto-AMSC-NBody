@@ -10,7 +10,7 @@ public:
 	/// Default constructor: all components set to 0
 	/// </summary>
 	/// <typeparam name="dim"></typeparam>
-	Vector<dim>() : Vector<dim>(double[dim]) {}
+	Vector<dim>() : Vector<dim>( {0} ) {}
 
 	/// <summary>
 	/// Standard constructor: all components must be provided
@@ -22,7 +22,7 @@ public:
 	/// Retrieves the vector component corresponding to the argument, starting from 0.
 	/// </summary>
 	/// <typeparam name="dim">The component to retrieve</typeparam>
-	double& operator[](const unsigned int& comp) const
+	double& operator[](const unsigned int& comp)
 	{
 		return components[comp];
 	}

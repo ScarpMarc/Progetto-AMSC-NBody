@@ -17,15 +17,15 @@ public:
 	/// </summary>
 	/// <param name =
 	Particle(unsigned int id,
-			Vector<dim> position,
-			Vector <dim> speed,
-			Vector <dim> acceleration,
-			double mass):
-			ID(id),
-			pos(position),
-			speed(speed),
-			accel(acceleration),
-			mass(mass)
+		Vector<dim> position,
+		Vector <dim> speed,
+		Vector <dim> acceleration,
+		double mass) :
+		ID(id),
+		pos(position),
+		speed(speed),
+		accel(acceleration),
+		mass(mass)
 	{}
 
 	/// <summary>
@@ -54,14 +54,14 @@ public:
 	/// <summary>
 	/// Gets ID number
 	/// </summary>
-	unsigned int get_particle_id(){return ID;}
+	unsigned int get_particle_id() { return ID; }
 
 	/// <summary>
 	/// Gets position, speed and acceleration
 	/// </summary>
-	Vector<dim> get_position(){return pos;}
-	Vector<dim> get_speed(){return speed;}
-	Vector<dim> get_acc(){return accel;}
+	Vector<dim> get_position() { return pos; }
+	Vector<dim> get_speed() { return speed; }
+	Vector<dim> get_acc() { return accel; }
 
 private:
 	void _updateSpeed(const unsigned int& delta_time);

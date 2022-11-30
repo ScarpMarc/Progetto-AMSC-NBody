@@ -2,6 +2,8 @@
 #include <vector>
 #include <set>
 
+#include "Utils.h"
+
 #include "Particle.h"
 #include "Types.h"
 #include "Vector.h"
@@ -30,11 +32,40 @@ public:
 	/// Gets the sum of forces exerted on <param>p</param>
 	/// </summary>
 	/// <param name="p">The particle of interest</param>
-	Vector<dim> getTotalForceOnParticle(const unsigned int &idx) const;
+	Vector<dim> getTotalForceOnParticle(const unsigned int& idx) const;
 
-	inline Vector<dim> getElementAt(const unsigned int& row, const unsigned int& col) const;
+	/// <summary>
+	/// Returns a const reference to the desired matrix element.
+	/// </summary>
+	/// <param name="row">Row index, starting from 0</param>
+	/// <param name="col">Column index, starting from 0</param>
+	/// <returns>The value referenced by row and col</returns>
+	const double& operator()(const unsigned int& row, const unsigned int& col) const
+	{
+#ifdef _DEBUG
+		if (row >= current_particle_amt || col >= current_particle_amt) throw "ERROR! Requested rows and/or cols out of range.";
+#endif
+
+		// A particle exerts no force on itself
+		if (row == col) return Vector<dim>();
+		// Values above the diagonal have the + sign
+		if (row < col) return force_matrix[(current_particle_amt - 1) * row - sumUpTo(1, row + 1) + col - 1];
+		// Values below the diagonal have the - sign but are otherwise equal to the others
+		else return -force_matrix[(current_particle_amt - 1) * col - sumUpTo(1, col + 1) + row - 1];
+	}
+
 
 private:
+	inline void _setInteraction(const unsigned int& row, const unsigned int& col, const Vector<dim>& force)
+	{
+#ifdef _DEBUG
+		if (row >= current_particle_amt || col >= current_particle_amt) throw "ERROR! Requested rows and/or cols out of range.";
+#endif
+		// If row = col we simply do nothing since a particle cannot exert force on itself
+		if (row < col) force_matrix[(current_particle_amt - 1) * row - sumUpTo(1, row + 1) + col - 1] = force;
+		else if (row < col) force_matrix[(current_particle_amt - 1) * col - sumUpTo(1, col + 1) + row - 1] = force;
+	}
+
 	unsigned int current_particle_amt;
 	//std::vector<std::unique_ptr<Particle<dim>>> activeParticles;
 	// We only keep positive entries of the symmetric matrix (i.e. those above the diagonal)

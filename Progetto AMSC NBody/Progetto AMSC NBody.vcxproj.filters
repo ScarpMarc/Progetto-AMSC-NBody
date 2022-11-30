@@ -27,6 +27,9 @@
     <ClCompile Include="ForceMatrix.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
@@ -42,6 +45,9 @@
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="simulation_functions.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
