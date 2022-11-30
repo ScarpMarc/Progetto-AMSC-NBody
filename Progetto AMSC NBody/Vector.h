@@ -22,7 +22,7 @@ public:
 	/// Retrieves the vector component corresponding to the argument, starting from 0.
 	/// </summary>
 	/// <typeparam name="dim">The component to retrieve</typeparam>
-	const double& operator[](const unsigned int& comp) const
+	double& operator[](const unsigned int& comp) const
 	{
 		return components[comp];
 	}
