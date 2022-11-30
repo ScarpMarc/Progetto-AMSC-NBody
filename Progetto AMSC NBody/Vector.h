@@ -88,11 +88,18 @@ public:
 		}
 	}
 
-	constexpr Vector<3>& operator/(const double& val) const
+	constexpr Vector<dim>& operator*(const double& val) const
+	{
+		std::array<double, dim> out_components = components;
+		for (unsigned int i = 0; i < dim; ++i) out_components[i] *= val;
+		return Vector<dim>(out_components);
+	}
+
+	constexpr Vector<dim>& operator/(const double& val) const
 	{
 		std::array<double, dim> out_components = components;
 		for (unsigned int i = 0; i < dim; ++i) out_components[i] /= val;
-		return Vector<3>(out_components);
+		return Vector<dim>(out_components);
 	}
 
 	/// <summary>

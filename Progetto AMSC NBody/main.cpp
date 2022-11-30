@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Particle.h"
 #include "Vector.h"
+#include "ForceMatrix.h"
 
 using namespace std;
 
