@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="File di intestazione\Graphics">
+      <UniqueIdentifier>{905db483-5055-4118-82dc-55fcb3d80516}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File di origine\Graphics">
+      <UniqueIdentifier>{007c1865-c414-48c3-bed1-8eabd7ac7576}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -29,6 +35,12 @@
     </ClCompile>
     <ClCompile Include="Utils.cpp">
       <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLFunctions.cpp">
+      <Filter>File di origine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="shader.cpp">
+      <Filter>File di origine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -50,5 +62,19 @@
     <ClInclude Include="Utils.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="OpenGLFunctions.h">
+      <Filter>File di intestazione\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>File di intestazione\Graphics</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vertexShader.vertexshader">
+      <Filter>File di risorse</Filter>
+    </None>
+    <None Include="fragmentShader.fragmentshader">
+      <Filter>File di risorse</Filter>
+    </None>
   </ItemGroup>
 </Project>
