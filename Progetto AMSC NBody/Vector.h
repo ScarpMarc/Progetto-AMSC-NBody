@@ -105,7 +105,7 @@ public:
 	/// <summary>
 	/// Euclidean norm of the vector
 	/// </summary>
-	double eu_norm() const;
+	double euNorm() const;
 
 private:
 	std::array<double, dim> components;
