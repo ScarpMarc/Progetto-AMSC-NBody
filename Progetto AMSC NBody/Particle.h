@@ -61,14 +61,14 @@ public:
 	/// <summary>
 	/// Gets ID number
 	/// </summary>
-	unsigned int get_particle_id() { return ID; }
+	unsigned int get_particle_id() const { return ID; }
 
 	/// <summary>
 	/// Gets position, speed, acceleration and mass
 	/// </summary>
-	Vector<dim> get_position() { return pos; }
-	Vector<dim> get_speed() { return speed; }
-	Vector<dim> get_acc() { return accel; }
+	Vector<dim> get_position() const { return pos; }
+	Vector<dim> get_speed() const { return speed; }
+	Vector<dim> get_acc() const { return accel; }
 
 private:
 	void _updateSpeed(const unsigned int& delta_time);
