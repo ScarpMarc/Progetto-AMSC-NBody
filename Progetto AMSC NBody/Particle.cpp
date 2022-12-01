@@ -1,5 +1,7 @@
 #pragma once
 #include "Particle.h"
+#include <iomanip>
+#include <cmath>
 
 template<unsigned int dim>
 void Particle<dim>::print() const
@@ -62,6 +64,8 @@ void Particle<dim>::_updatePos(const unsigned int& delta_time)
 template<unsigned int dim>
 Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
 {
-	
+	Vector<dim> dispalcement = this->calcDistance(other);
+	double distance = dispalcement.euNorm();
+	return dispalcement * ( - mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
 }
  
