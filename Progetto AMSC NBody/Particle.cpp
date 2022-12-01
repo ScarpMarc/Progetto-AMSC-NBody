@@ -2,7 +2,7 @@
 #include "Particle.h"
 
 template<unsigned int dim>
-void Particle<dim>::print()
+void Particle<dim>::print() const
 {
 	constexpr char coord[3] = {'X', 'Y', 'Z'};
 	std::cout << "Particle ID: " << ID << std::endl;
@@ -62,8 +62,6 @@ void Particle<dim>::_updatePos(const unsigned int& delta_time)
 template<unsigned int dim>
 Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
 {
-	Vector<dim> dispalcement = this->calcDistance(other);
-	double distance = dispalcement.eu_norm();
-	return -
+	
 }
  

@@ -89,5 +89,3 @@ private:
 
 	// TODO Magnetic constant (?)
 };
-
-
