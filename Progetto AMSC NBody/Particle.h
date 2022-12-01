@@ -32,12 +32,14 @@ public:
 	/// Calculates the force exerted by the other particle on this particle.
 	/// </summary>
 	/// <param name="other">Other particle</param>
-	Vector<dim> calcForce(const Particle& other) const;
+	Vector<dim> calcForce(const Particle<dim>& other) const;
+
 	/// <summary>
 	/// Calculates the absolute distance between this particle and the other.
 	/// </summary>
 	/// <param name="other">Other particle</param>
-	Vector<dim> calcDistance(const Particle& other) const;
+	Vector<dim> calcDistance(const Particle<dim>& other) const;
+
 	/// <summary>
 	/// Calculates the new particle position based on speed, acceleration and previous position
 	/// </summary>
@@ -52,12 +54,17 @@ public:
 	void updateResultingForce(const Vector<dim>& resulting_force);
 
 	/// <summary>
+	/// Print particle information
+	/// </summary>
+	void print();
+
+	/// <summary>
 	/// Gets ID number
 	/// </summary>
 	unsigned int get_particle_id() { return ID; }
 
 	/// <summary>
-	/// Gets position, speed and acceleration
+	/// Gets position, speed, acceleration and mass
 	/// </summary>
 	Vector<dim> get_position() { return pos; }
 	Vector<dim> get_speed() { return speed; }
@@ -76,7 +83,7 @@ private:
 
 	// TODO Set value
 	// Mass constant k
-	const double mass_constant_k = 1.0;
+	const double mass_constant_k = 6.673e-11;
 
 	// TODO Electric constant
 
