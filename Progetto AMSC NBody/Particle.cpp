@@ -1,4 +1,3 @@
-#pragma once
 #include "Particle.h"
 #include <iomanip>
 #include <cmath>
