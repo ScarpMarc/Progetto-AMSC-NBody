@@ -71,18 +71,25 @@ int main()
 	unsigned int time(0);
 
 	// UPDATE SECTION
-	while (time < MAX_TIME)
+	for (time = 0; time < MAX_TIME; time++)
 	{
 		//compute forces
 		force_matrix.updateForces(particles);
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < total_particles; i++)
 		{
 			// updating forces
 			temp = force_matrix.getTotalForceOnParticle(i);
 			particles[i] -> updateResultingForce(temp);
+		}
+
+		#pragma omp parallel for
+		for (unsigned int i = 0; i < total_particles; i++)
+		{
 			// updating positions
 			particles[i]->calcNewPosition(DELTA_T);
 		}
+		
 
 		time += DELTA_T;
 	}
