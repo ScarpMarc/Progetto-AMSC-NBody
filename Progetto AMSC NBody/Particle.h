@@ -59,9 +59,10 @@ public:
 	/// <summary>
 	/// Gets position, speed and acceleration
 	/// </summary>
-	Vector<dim> get_position() { return pos; }
-	Vector<dim> get_speed() { return speed; }
-	Vector<dim> get_acc() { return accel; }
+	Vector<dim> get_position() const  { return pos; }
+	Vector<dim> get_speed() const  { return speed; }
+	Vector<dim> get_acc() const  { return accel; }
+	inline double get_mass() const { return mass; }
 
 private:
 	void _updateSpeed(const unsigned int& delta_time);

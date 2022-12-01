@@ -6,12 +6,16 @@
 #include "Vector.h"
 #include "ForceMatrix.h"
 
+#include "OpenGLFunctions.h"
+
 #define DIM 3
 
 using namespace std;
 
 int main()
 {
+	GLFWwindow* window = nullptr;
+	gl_init(window);
 
 	int total_particles(3);
 
@@ -20,11 +24,12 @@ int main()
 	double mass;
 	Vector<DIM> position, speed, acceleration;
 
+	std::vector<Particle<DIM>> newParticles;
+
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
-
 		// generate mass
-		double mass(static_cast<double>(i*3));
+		double mass(static_cast<double>((i+1)*3));
 		// generate new position, velocity and acceleration
 		position = Vector<DIM>({0.0 + static_cast<double>(i),0.0 + static_cast<double>(i),0.0 + static_cast<double>(i)});
 		speed = Vector<DIM>({0.0,0.0,0.0});
@@ -32,6 +37,8 @@ int main()
 
 		// generate particle
 		particles.push_back(std::make_unique<Particle<DIM>>(i, position, speed, acceleration, mass));
+
+		newParticles.emplace_back(i, position, speed, acceleration, mass);
 	}
 	
 	// print particles
@@ -56,6 +63,10 @@ int main()
 			std::cout << particles[i] ->get_acc()[i] << std::endl;
 		}
 	}
+
+	
+
+	drawParticles<3>(window, newParticles);
 	
 	
 }
