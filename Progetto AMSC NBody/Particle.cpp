@@ -1,4 +1,3 @@
-#pragma once
 #include "Particle.h"
 
 template<unsigned int dim>
