@@ -68,3 +68,13 @@ Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
 	return dispalcement * ( - mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
 }
  
+ template<unsigned int dim>
+ Vector<dim> Particle<dim>::calcDistance(const Particle<dim>& other) const
+ {
+	Vector<dim> displacement = Vector<dim>();
+	for (int i = 0; i < dim; ++i)
+	{
+		displacement[i] = other->pos[i] - this->pos[i];
+	}
+	return displacement;
+ }
