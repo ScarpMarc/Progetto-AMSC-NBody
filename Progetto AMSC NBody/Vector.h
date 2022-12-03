@@ -33,7 +33,6 @@ public:
 		return this;
 	}
 
-
 	constexpr friend Vector<dim> operator+(const Vector<dim> lhs, const Vector<dim>& rhs)
 	{
 		// Apparently declaring the first one with no reference is more optimised
@@ -100,6 +99,17 @@ public:
 		std::array<double, dim> out_components = components;
 		for (unsigned int i = 0; i < dim; ++i) out_components[i] /= val;
 		return Vector<dim>(out_components);
+	}
+
+	constexpr Vector<dim> operator-() const
+	{
+		std::array<double, dim> new_components;
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			new_components[i] = -components[i];
+		}
+
+		return Vector<dim>(new_components);
 	}
 
 	/// <summary>
