@@ -149,6 +149,7 @@
     <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="ForceMatrix.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="simulation_functions.h" />

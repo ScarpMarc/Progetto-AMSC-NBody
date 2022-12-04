@@ -5,13 +5,11 @@
 #include "Particle.h"
 #include "Vector.h"
 #include "ForceMatrix.h"
+#include "Constants.h"
 
 #define DIM 3
 //#define DELTA_T 0.1f
 //#define MAX_TIME 10
-
-const double delta_t = 0.1;
-const double max_time = 10.0;
 
 using namespace std;
 
@@ -53,13 +51,13 @@ int main()
 		std::cout << "With velocity" << std::endl;
 		for (unsigned int j = 0; j < DIM; j++)
 		{
-			std::cout << particles[j] ->get_speed()[j] << std::endl;
+			std::cout << particles[i] ->get_speed()[j] << std::endl;
 		}
 
 		std::cout << "and acceleration" << std::endl;
 		for (unsigned int j = 0; j < DIM; j++)
 		{
-			std::cout << particles[j] ->get_acc()[j] << std::endl;
+			std::cout << particles[i] ->get_acc()[j] << std::endl;
 		}
 	}
 
@@ -71,7 +69,7 @@ int main()
 	double time(0);
 
 	// UPDATE SECTION
-	for (time = 0; time < max_time; time += delta_t)
+	for (time = 0; time < max_ticks; ++time)
 	{
 		//compute forces
 		force_matrix.updateForces(particles);
@@ -87,10 +85,11 @@ int main()
 		for (unsigned int i = 0; i < total_particles; i++)
 		{
 			// updating positions
-			particles[i]->calcNewPosition(delta_t);
+			particles[i]->calcNewPosition(1);
 		}
 		
-		cout << "----------------------------------------------------------------\nCycle " << time << endl;
+		cout << "----------------------------------------------------------------\nCycle " 
+			<< time << " (Time " << time/ticks_per_second <<" seconds)\n" << endl;
 		for (unsigned int i = 0; i < total_particles; i++)
 		{
 			std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
@@ -103,13 +102,13 @@ int main()
 			std::cout << "With velocity" << std::endl;
 			for (unsigned int j = 0; j < DIM; j++)
 			{
-				std::cout << particles[j]->get_speed()[j] << std::endl;
+				std::cout << particles[i]->get_speed()[j] << std::endl;
 			}
 
 			std::cout << "and acceleration" << std::endl;
 			for (unsigned int j = 0; j < DIM; j++)
 			{
-				std::cout << particles[j]->get_acc()[j] << std::endl;
+				std::cout << particles[i]->get_acc()[j] << std::endl;
 			}
 		}
 	}

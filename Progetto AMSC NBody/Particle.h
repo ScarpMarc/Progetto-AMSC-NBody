@@ -2,6 +2,7 @@
 
 #include "Types.h"
 #include "Vector.h"
+#include "Constants.h"
 
 #include <iomanip>
 #include <cmath>
@@ -48,7 +49,7 @@ public:
 	/// </summary>
 	/// <param name="delta_time">Delta time, expressed in unit time</param>
 	/// <returns>The new position</returns>
-	const Vector<dim>& calcNewPosition(const unsigned int& delta_time);
+	const Vector<dim>& calcNewPosition(const unsigned int & delta_ticks);
 
 	/// <summary>
 	/// Updates this particle's force from the global matrix.
@@ -87,8 +88,8 @@ public:
 	inline const unsigned int& get_particle_id() const { return ID; }
 
 private:
-	void _updateSpeed(const unsigned int& delta_time);
-	void _updatePos(const unsigned int& delta_time);
+	void _updateSpeed(const unsigned int & delta_ticks);
+	void _updatePos(const unsigned int & delta_ticks);
 
 	unsigned int ID; // particle id number
 
@@ -138,10 +139,10 @@ void Particle<dim>::print() const
 }
 
 template<unsigned int dim>
-const Vector<dim>& Particle<dim>::calcNewPosition(const unsigned int& delta_time)
+const Vector<dim>& Particle<dim>::calcNewPosition(const unsigned int & delta_ticks)
 {
-	_updateSpeed(delta_time);
-	_updatePos(delta_time);
+	_updateSpeed(delta_ticks);
+	_updatePos(delta_ticks);
 	return pos;
 }
 
@@ -155,20 +156,20 @@ void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
 }
 
 template<unsigned int dim>
-void Particle<dim>::_updateSpeed(const unsigned int& delta_time)
+void Particle<dim>::_updateSpeed(const unsigned int & delta_ticks)
 {
 	for (int i = 0; i < dim; ++i)
 	{
-		speed[i] = accel[i] * delta_time;
+		speed[i] += accel[i] * ((double)delta_ticks / ticks_per_second);
 	}
 }
 
 template<unsigned int dim>
-void Particle<dim>::_updatePos(const unsigned int& delta_time)
+void Particle<dim>::_updatePos(const unsigned int & delta_ticks)
 {
 	for (int i = 0; i < dim; ++i)
 	{
-		pos[i] = speed[i] * delta_time;
+		pos[i] += speed[i] * ((double)delta_ticks / ticks_per_second);
 	}
 }
 
