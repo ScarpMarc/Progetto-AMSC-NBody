@@ -74,7 +74,7 @@ Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
 	Vector<dim> displacement = Vector<dim>();
 	for (int i = 0; i < dim; ++i)
 	{
-		displacement[i] = other->pos[i] - this->pos[i];
+		displacement[i] = other.pos[i] - this.pos[i];
 	}
 	return displacement;
  }

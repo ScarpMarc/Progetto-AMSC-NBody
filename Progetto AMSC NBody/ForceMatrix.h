@@ -78,14 +78,16 @@ private:
 
 	/// <summary>
 	/// Updates the partial sum vector for quick array subscript computation. MUST be called when adding particles.
+	/// Assumes resizing is possible. The check should be done beforehand.
 	/// </summary>
 	/// <param name="add_amt">Amount of particles added</param>
 	void _updatePartialSums_add(const unsigned int& add_amt);
 
 	/// <summary>
-	/// Updates the partial sum vector for quick array subscript computation. MUST be called when adding particles.
+	/// Updates the partial sum vector for quick array subscript computation. MUST be called when removing particles.
+	/// Assumes resizing is possible. The check should be done beforehand.
 	/// </summary>
-	/// <param name="add_amt">Amount of particles added</param>
+	/// <param name="add_amt">Amount of particles removed</param>
 	void _updatePartialSums_remove(const unsigned int& remove_amt);
 
 	/// <summary>
