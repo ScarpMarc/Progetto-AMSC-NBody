@@ -168,7 +168,7 @@ Vector<dim> ForceMatrix<dim>::getTotalForceOnParticle(const unsigned int& idx) c
 {
 	// TODO test
 	Vector<dim> sum;
-	for (unsigned int i = 0; i < current_particle_amt; ++i) sum += this->operator()(idx, i);
+	for (unsigned int i = 0; i < current_particle_amt; ++i) sum += _getElem(idx, i);
 	return sum;
 }
 

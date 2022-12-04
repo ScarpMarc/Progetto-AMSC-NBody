@@ -7,8 +7,11 @@
 #include "ForceMatrix.h"
 
 #define DIM 3
-#define DELTA_T 0.1
-#define MAX_TIME 10
+//#define DELTA_T 0.1f
+//#define MAX_TIME 10
+
+const double delta_t = 0.1;
+const double max_time = 10.0;
 
 using namespace std;
 
@@ -20,14 +23,13 @@ int main()
 
 	// vector of unique pointers to Particle objects
 	std::vector<std::unique_ptr<Particle<DIM>>> particles;
-	double mass;
 	Vector<DIM> position, speed, acceleration;
 
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
 
 		// generate mass
-		double mass(static_cast<double>(i*3));
+		double mass(static_cast<double>((i+1)*3));
 		// generate new position, velocity and acceleration
 		position = Vector<DIM>({0.0 + static_cast<double>(i),0.0 + static_cast<double>(i),0.0 + static_cast<double>(i)});
 		speed = Vector<DIM>({0.0,0.0,0.0});
@@ -61,17 +63,15 @@ int main()
 		}
 	}
 
-
-
 	// UPDATE CYCLE
 
 	ForceMatrix<DIM> force_matrix = ForceMatrix<DIM>(total_particles);
 	force_matrix.updateForces(particles);
 	Vector<DIM> temp;
-	unsigned int time(0);
+	double time(0);
 
 	// UPDATE SECTION
-	for (time = 0; time < MAX_TIME; time++)
+	for (time = 0; time < max_time; time += delta_t)
 	{
 		//compute forces
 		force_matrix.updateForces(particles);
@@ -87,10 +87,30 @@ int main()
 		for (unsigned int i = 0; i < total_particles; i++)
 		{
 			// updating positions
-			particles[i]->calcNewPosition(DELTA_T);
+			particles[i]->calcNewPosition(delta_t);
 		}
 		
+		cout << "----------------------------------------------------------------\nCycle " << time << endl;
+		for (unsigned int i = 0; i < total_particles; i++)
+		{
+			std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
+			std::cout << "In position" << std::endl;
+			for (unsigned int j = 0; j < DIM; j++)
+			{
+				std::cout << particles[i]->get_position()[j] << std::endl;
+			}
 
-		time += DELTA_T;
+			std::cout << "With velocity" << std::endl;
+			for (unsigned int j = 0; j < DIM; j++)
+			{
+				std::cout << particles[j]->get_speed()[j] << std::endl;
+			}
+
+			std::cout << "and acceleration" << std::endl;
+			for (unsigned int j = 0; j < DIM; j++)
+			{
+				std::cout << particles[j]->get_acc()[j] << std::endl;
+			}
+		}
 	}
 }

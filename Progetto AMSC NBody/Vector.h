@@ -33,7 +33,7 @@ public:
 	/// Retrieves the const vector component corresponding to the argument, starting from 0.
 	/// </summary>
 	/// <typeparam name="dim">The component to retrieve</typeparam>
-	const double& operator[](const unsigned int& comp) const
+	const double operator[](const unsigned int& comp) const
 	{
 		return components[comp];
 	}
@@ -84,7 +84,7 @@ public:
 	constexpr friend double operator*(Vector<dim> lhs, const Vector<dim>& rhs)
 	{
 		double sum = 0;
-		for (unsigned int i = 0; i < dim; ++i) sum += lhs[i] * rhs[i];
+		for (unsigned int i = 0; i < dim; ++i) sum += (lhs[i]) * (rhs[i]);
 		return sum;
 	}
 
@@ -100,15 +100,15 @@ public:
 		}
 		else if (dim == 2)
 		{
-			components[2U] = this[0U] * other[1U] - this[1U] * other[0U];
+			components[2U] = components[0U] * other[1U] - components[1U] * other[0U];
 			components[0U] = 0;
 			components[1U] = 0;
 		}
 		else if (dim == 3)
 		{
-			components[0U] = this[1U] * other[2U] - this[2U] * other[1U];
-			components[1U] = this[2U] * other[0U] - this[0U] * other[2U];
-			components[2U] = this[0U] * other[1U] - this[1U] * other[0U];
+			components[0U] = components[1U] * other[2U] - components[2U] * other[1U];
+			components[1U] = components[2U] * other[0U] - components[0U] * other[2U];
+			components[2U] = components[0U] * other[1U] - components[1U] * other[0U];
 		}
 		return *this;
 	}
@@ -214,6 +214,6 @@ template <unsigned int dim>
 double Vector<dim>::euNorm() const
 {
 	double sum = 0;
-	for (unsigned int i = 0; i < dim; ++i) sum += this[i] * this[i];
+	for (unsigned int i = 0; i < dim; ++i) sum += components[i] * components[i];
 	return sqrt(sum);
 }

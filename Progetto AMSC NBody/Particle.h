@@ -175,9 +175,9 @@ void Particle<dim>::_updatePos(const unsigned int& delta_time)
 template<unsigned int dim>
 Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
 {
-	Vector<dim> dispalcement = this->calcDistance(other);
-	double distance = dispalcement.euNorm();
-	return dispalcement * (-mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
+	Vector<dim> displacement = calcDistance(other);
+	double distance = displacement.euNorm();
+	return displacement * (-mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
 }
 
 template<unsigned int dim>
