@@ -3,6 +3,9 @@
 #include "Types.h"
 #include "Vector.h"
 
+#include <iomanip>
+#include <cmath>
+
 /// <summary>
 /// Represents the basic particles that interact in the world
 /// </summary>
@@ -45,7 +48,7 @@ public:
 	/// </summary>
 	/// <param name="delta_time">Delta time, expressed in unit time</param>
 	/// <returns>The new position</returns>
-	Vector<dim> calcNewPosition(const unsigned int& delta_time);
+	const Vector<dim>& calcNewPosition(const unsigned int& delta_time);
 
 	/// <summary>
 	/// Updates this particle's force from the global matrix.
@@ -61,7 +64,27 @@ public:
 	/// <summary>
 	/// Gets particle mass
 	/// </summary>
-	double getMass() const { return mass; }
+	inline const double& getMass() const { return mass; }
+
+	/// <summary>
+	/// Gets particle position
+	/// </summary>
+	inline const Vector<dim>& get_position() const { return pos; }
+
+	/// <summary>
+	/// Gets particle speed
+	/// </summary>
+	inline const Vector<dim>& get_speed() const { return speed; }
+
+	/// <summary>
+	/// Gets particle acceleration
+	/// </summary>
+	inline const Vector<dim>& get_acc() const { return accel; }
+
+	/// <summary>
+	/// Gets particle ID
+	/// </summary>
+	inline const unsigned int& get_particle_id() const { return ID; }
 
 private:
 	void _updateSpeed(const unsigned int& delta_time);
@@ -82,3 +105,88 @@ private:
 
 	// TODO Magnetic constant (?)
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MEMBER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<unsigned int dim>
+void Particle<dim>::print() const
+{
+	constexpr char coord[3] = { 'X', 'Y', 'Z' };
+	std::cout << "Particle ID: " << ID << std::endl;
+	std::cout << "Position";
+	for (int i = 0; i < dim; ++i)
+	{
+		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << pos[i] << std::endl;
+	}
+	std::cout << "Speed";
+	for (int i = 0; i < dim; ++i)
+	{
+		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << speed[i] << std::endl;
+	}
+	std::cout << "Acceleration";
+	for (int i = 0; i < dim; ++i)
+	{
+		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << speed[i] << std::endl;
+	}
+	std::cout << std::endl;
+}
+
+template<unsigned int dim>
+const Vector<dim>& Particle<dim>::calcNewPosition(const unsigned int& delta_time)
+{
+	_updateSpeed(delta_time);
+	_updatePos(delta_time);
+	return pos;
+}
+
+template<unsigned int dim>
+void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
+{
+	for (int i = 0; i < dim; ++i)
+	{
+		accel[i] = resulting_force[i] / mass;
+	}
+}
+
+template<unsigned int dim>
+void Particle<dim>::_updateSpeed(const unsigned int& delta_time)
+{
+	for (int i = 0; i < dim; ++i)
+	{
+		speed[i] = accel[i] * delta_time;
+	}
+}
+
+template<unsigned int dim>
+void Particle<dim>::_updatePos(const unsigned int& delta_time)
+{
+	for (int i = 0; i < dim; ++i)
+	{
+		pos[i] = speed[i] * delta_time;
+	}
+}
+
+template<unsigned int dim>
+Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
+{
+	Vector<dim> dispalcement = this->calcDistance(other);
+	double distance = dispalcement.euNorm();
+	return dispalcement * (-mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
+}
+
+template<unsigned int dim>
+Vector<dim> Particle<dim>::calcDistance(const Particle<dim>& other) const
+{
+	Vector<dim> displacement = Vector<dim>();
+	for (int i = 0; i < dim; ++i)
+	{
+		displacement[i] = other.pos[i] - pos[i];
+	}
+	return displacement;
+}

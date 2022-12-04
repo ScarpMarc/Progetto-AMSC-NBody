@@ -93,8 +93,4 @@ int main()
 
 		time += DELTA_T;
 	}
-	
-
-	
-	
 }
