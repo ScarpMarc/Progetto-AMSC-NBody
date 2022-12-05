@@ -19,6 +19,7 @@ public:
 	Vector<dim>(const std::array<double, dim>& components) : components(components) { }
 
 	/// <summary>
+	/// Subscript operator.
 	/// Retrieves the vector component corresponding to the argument, starting from 0.
 	/// </summary>
 	/// <typeparam name="dim">The component to retrieve</typeparam>
@@ -27,13 +28,28 @@ public:
 		return components[comp];
 	}
 
+	/// <summary>
+	/// Subscript operator (const version).
+	/// Retrieves the const vector component corresponding to the argument, starting from 0.
+	/// </summary>
+	/// <typeparam name="dim">The component to retrieve</typeparam>
+	const double operator[](const unsigned int& comp) const
+	{
+		return components[comp];
+	}
+
+	/// <summary>
+	/// Vector-to-vector sum
+	/// </summary>
 	Vector<dim>& operator+=(const Vector<dim>& other)
 	{
 		for (unsigned int i = 0; i < dim; ++i) components[i] += other[i];
-		return this;
+		return *this;
 	}
 
-
+	/// <summary>
+	/// Vector-to-vector sum
+	/// </summary>
 	constexpr friend Vector<dim> operator+(const Vector<dim> lhs, const Vector<dim>& rhs)
 	{
 		// Apparently declaring the first one with no reference is more optimised
@@ -43,15 +59,38 @@ public:
 	}
 
 	/// <summary>
+	/// Vector-to-vector subtraction
+	/// </summary>
+	Vector<dim>& operator-=(const Vector<dim>& other)
+	{
+		for (unsigned int i = 0; i < dim; ++i) components[i] -= other[i];
+		return *this;
+	}
+
+	/// <summary>
+	/// Vector-to-vector subtraction
+	/// </summary>
+	constexpr friend Vector<dim> operator-(const Vector<dim> lhs, const Vector<dim>& rhs)
+	{
+		// Apparently declaring the first one with no reference is more optimised
+		Vector<dim> out(lhs);
+		out -= rhs;
+		return out;
+	}
+
+	/// <summary>
 	/// Dot (scalar) product
 	/// </summary>
 	constexpr friend double operator*(Vector<dim> lhs, const Vector<dim>& rhs)
 	{
 		double sum = 0;
-		for (unsigned int i = 0; i < dim; ++i) sum += lhs[i] * rhs[i];
+		for (unsigned int i = 0; i < dim; ++i) sum += (lhs[i]) * (rhs[i]);
 		return sum;
 	}
 
+	/// <summary>
+	/// Cross (vector) product
+	/// </summary>
 	constexpr Vector<dim>& operator^=(const Vector<dim>& other)
 	{
 		// Not using a cascading switch statement in fear that the compiler may actually perform this evaluation...
@@ -61,19 +100,22 @@ public:
 		}
 		else if (dim == 2)
 		{
-			components[2] = this[0] * other[1] - this[1] * other[0];
-			components[0] = 0;
-			components[1] = 0;
+			components[2U] = components[0U] * other[1U] - components[1U] * other[0U];
+			components[0U] = 0;
+			components[1U] = 0;
 		}
 		else if (dim == 3)
 		{
-			components[0] = this[1] * other[2] - this[2] * other[1];
-			components[1] = this[2] * other[0] - this[0] * other[2];
-			components[2] = this[0] * other[1] - this[1] * other[0];
+			components[0U] = components[1U] * other[2U] - components[2U] * other[1U];
+			components[1U] = components[2U] * other[0U] - components[0U] * other[2U];
+			components[2U] = components[0U] * other[1U] - components[1U] * other[0U];
 		}
-		return this;
+		return *this;
 	}
 
+	/// <summary>
+	/// Cross (vector) product
+	/// </summary>
 	const friend Vector<dim>& operator^(const Vector<dim>& lhs, const Vector<dim>& rhs)
 	{
 		if (dim == 1)
@@ -88,24 +130,63 @@ public:
 		}
 	}
 
-	constexpr Vector<dim>& operator*(const double& val) const
+	/// <summary>
+	/// Product by a scalar
+	/// </summary>
+	constexpr Vector<dim>& operator*=(const double& val)
 	{
-		std::array<double, dim> out_components = components;
-		for (unsigned int i = 0; i < dim; ++i) out_components[i] *= val;
-		return Vector<dim>(out_components);
+		for (unsigned int i = 0; i < dim; ++i) components[i] *= val;
+		return *this;
 	}
 
-	constexpr Vector<dim>& operator/(const double& val) const
+	/// <summary>
+	/// Product by a scalar
+	/// </summary>
+	constexpr Vector<dim> operator*(const double& val) const
 	{
-		std::array<double, dim> out_components = components;
-		for (unsigned int i = 0; i < dim; ++i) out_components[i] /= val;
-		return Vector<dim>(out_components);
+		Vector<dim> out(components);
+		out *= val;
+		return out;
+	}
+
+	/// <summary>
+	/// Division by a scalar
+	/// </summary>
+	constexpr Vector<dim>& operator/=(const double& val)
+	{
+		for (unsigned int i = 0; i < dim; ++i) components[i] /= val;
+		return *this;
+	}
+
+	/// <summary>
+	/// Division by a scalar
+	/// </summary>
+	constexpr Vector<dim> operator/(const double& val) const
+	{
+		Vector<dim> out(components);
+		out /= val;
+		return out;
+	}
+
+	/// <summary>
+	/// Inversion operator
+	/// </summary>
+	/// <returns>A vector with all components flipped in sign</returns>
+	constexpr Vector<dim> operator-() const
+	{
+		std::array<double, dim> new_components;
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			new_components[i] = -components[i];
+		}
+
+		return Vector<dim>(new_components);
 	}
 
 	/// <summary>
 	/// Euclidean norm of the vector
 	/// </summary>
-	double eu_norm() const;
+	double euNorm() const;
 
 private:
 	std::array<double, dim> components;
@@ -119,4 +200,20 @@ std::ostream& operator<<(std::ostream& out, const Vector<dim>& vec)
 	out << "]";
 
 	return out;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MEMBER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <unsigned int dim>
+double Vector<dim>::euNorm() const
+{
+	double sum = 0;
+	for (unsigned int i = 0; i < dim; ++i) sum += components[i] * components[i];
+	return sqrt(sum);
 }

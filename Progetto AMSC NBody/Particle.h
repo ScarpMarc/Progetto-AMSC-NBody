@@ -2,6 +2,10 @@
 
 #include "Types.h"
 #include "Vector.h"
+#include "Constants.h"
+
+#include <iomanip>
+#include <cmath>
 
 /// <summary>
 /// Represents the basic particles that interact in the world
@@ -45,7 +49,7 @@ public:
 	/// </summary>
 	/// <param name="delta_time">Delta time, expressed in unit time</param>
 	/// <returns>The new position</returns>
-	Vector<dim> calcNewPosition(const unsigned int& delta_time);
+	const Vector<dim>& calcNewPosition(const unsigned int & delta_ticks);
 
 	/// <summary>
 	/// Updates this particle's force from the global matrix.
@@ -59,20 +63,33 @@ public:
 	void print() const ;
 
 	/// <summary>
-	/// Gets ID number
+	/// Gets particle mass
 	/// </summary>
-	unsigned int get_particle_id() const { return ID; }
+	inline const double& getMass() const { return mass; }
 
 	/// <summary>
-	/// Gets position, speed, acceleration and mass
+	/// Gets particle position
 	/// </summary>
-	Vector<dim> get_position() const { return pos; }
-	Vector<dim> get_speed() const { return speed; }
-	Vector<dim> get_acc() const { return accel; }
+	inline const Vector<dim>& get_position() const { return pos; }
+
+	/// <summary>
+	/// Gets particle speed
+	/// </summary>
+	inline const Vector<dim>& get_speed() const { return speed; }
+
+	/// <summary>
+	/// Gets particle acceleration
+	/// </summary>
+	inline const Vector<dim>& get_acc() const { return accel; }
+
+	/// <summary>
+	/// Gets particle ID
+	/// </summary>
+	inline const unsigned int& get_particle_id() const { return ID; }
 
 private:
-	void _updateSpeed(const unsigned int& delta_time);
-	void _updatePos(const unsigned int& delta_time);
+	void _updateSpeed(const unsigned int & delta_ticks);
+	void _updatePos(const unsigned int & delta_ticks);
 
 	unsigned int ID; // particle id number
 
@@ -89,3 +106,88 @@ private:
 
 	// TODO Magnetic constant (?)
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MEMBER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<unsigned int dim>
+void Particle<dim>::print() const
+{
+	constexpr char coord[3] = { 'X', 'Y', 'Z' };
+	std::cout << "Particle ID: " << ID << std::endl;
+	std::cout << "Position";
+	for (int i = 0; i < dim; ++i)
+	{
+		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << pos[i] << std::endl;
+	}
+	std::cout << "Speed";
+	for (int i = 0; i < dim; ++i)
+	{
+		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << speed[i] << std::endl;
+	}
+	std::cout << "Acceleration";
+	for (int i = 0; i < dim; ++i)
+	{
+		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << speed[i] << std::endl;
+	}
+	std::cout << std::endl;
+}
+
+template<unsigned int dim>
+const Vector<dim>& Particle<dim>::calcNewPosition(const unsigned int & delta_ticks)
+{
+	_updateSpeed(delta_ticks);
+	_updatePos(delta_ticks);
+	return pos;
+}
+
+template<unsigned int dim>
+void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
+{
+	for (int i = 0; i < dim; ++i)
+	{
+		accel[i] = resulting_force[i] / mass;
+	}
+}
+
+template<unsigned int dim>
+void Particle<dim>::_updateSpeed(const unsigned int & delta_ticks)
+{
+	for (int i = 0; i < dim; ++i)
+	{
+		speed[i] += accel[i] * ((double)delta_ticks / ticks_per_second);
+	}
+}
+
+template<unsigned int dim>
+void Particle<dim>::_updatePos(const unsigned int & delta_ticks)
+{
+	for (int i = 0; i < dim; ++i)
+	{
+		pos[i] += speed[i] * ((double)delta_ticks / ticks_per_second);
+	}
+}
+
+template<unsigned int dim>
+Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
+{
+	Vector<dim> displacement = calcDistance(other);
+	double distance = displacement.euNorm();
+	return displacement * (-mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
+}
+
+template<unsigned int dim>
+Vector<dim> Particle<dim>::calcDistance(const Particle<dim>& other) const
+{
+	Vector<dim> displacement = Vector<dim>();
+	for (int i = 0; i < dim; ++i)
+	{
+		displacement[i] = other.pos[i] - pos[i];
+	}
+	return displacement;
+}
