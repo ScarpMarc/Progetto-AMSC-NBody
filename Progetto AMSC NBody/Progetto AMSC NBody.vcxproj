@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\Users\marco\Documents\Programmi\C++\NBody\Progetto AMSC NBody\glew\bin\Debug\x64;C:\Users\marco\Documents\Programmi\C++\NBody\Progetto AMSC NBody\libs;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)glew\bin\Debug\x64;$(SolutionDir)libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

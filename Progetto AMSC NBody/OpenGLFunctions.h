@@ -8,7 +8,7 @@
 #include "shader.h"
 #include "Constants.h"
 
-#include "../glew/Include/GL/glew.h"
+#include "../libs/include/GL/glew.h"
 #include "../glfw/include/GLFW/glfw3.h"
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/matrix_transform.hpp"
