@@ -1,5 +1,5 @@
-#pragma once
 #include "Particle.h"
+#include <iomanip>
 
 template<unsigned int dim>
 void Particle<dim>::print() const

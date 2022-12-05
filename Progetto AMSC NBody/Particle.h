@@ -56,7 +56,7 @@ public:
 	/// <summary>
 	/// Print particle information
 	/// </summary>
-	void print() const;
+	void print() const ;
 
 	/// <summary>
 	/// Gets ID number

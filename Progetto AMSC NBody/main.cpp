@@ -41,28 +41,11 @@ int main()
 
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
-		std::cout << "Particle #:" << particles[i] ->get_particle_id() << std::endl;
-		std::cout << "In position" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[i] ->get_position()[j] << std::endl;
-		}
-
-		std::cout << "With velocity" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[j] ->get_speed()[j] << std::endl;
-		}
-
-		std::cout << "and acceleration" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[j] ->get_acc()[j] << std::endl;
-		}
+		(*(particles[i])).print();
 	}
 
 
-
+/*
 	// UPDATE CYCLE
 
 	ForceMatrix<DIM> force_matrix = ForceMatrix<DIM>(total_particles);
@@ -94,7 +77,7 @@ int main()
 		time += DELTA_T;
 	}
 	
-
+*/
 	
 	
 }
