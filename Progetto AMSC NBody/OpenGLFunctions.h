@@ -6,24 +6,20 @@
 
 #include "Particle.h"
 #include "shader.h"
+#include "Constants.h"
 
 #include "../glew/Include/GL/glew.h"
 #include "../glfw/include/GLFW/glfw3.h"
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/matrix_transform.hpp"
 
-#include <Windows.h>
-
-const unsigned int screenResX = 1024;
-const unsigned int screenResY = 1024;
-
-//const unsigned int dimX = 100;
-//const unsigned int dimY = 100;
+#include <chrono>
+#include <thread>
 
 int gl_init(GLFWwindow** window);
 
 template <unsigned int dim>
-void drawParticles(GLFWwindow** window, const std::vector<Particle<dim>>& particles)
+void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim>>> *particles)
 {
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -85,9 +81,9 @@ void drawParticles(GLFWwindow** window, const std::vector<Particle<dim>>& partic
 				// Iterate over the dimensions
 				for (unsigned int vectorDim = 0; vectorDim < dim; ++vectorDim)
 				{
-					vertexBufferData[k++] = (particles[i]).get_position()[vectorDim] / screenResX;
+					vertexBufferData[k++] = particles[i]->get_position()[vectorDim] / screenResX;
 				}
-				weightVector[l++] = (particles[i]).get_mass();
+				weightVector[l++] = particles[i]->getMass();
 			}
 		}
 
@@ -146,7 +142,8 @@ void drawParticles(GLFWwindow** window, const std::vector<Particle<dim>>& partic
 		glfwPollEvents();
 
 		iteration += 1;
-		Sleep(100);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(screen_refresh_millis));
 
 	} // Check if the ESC key was pressed or the window was closed
 	while (glfwGetKey(*window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&

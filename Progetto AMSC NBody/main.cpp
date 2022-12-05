@@ -7,9 +7,11 @@
 #include "ForceMatrix.h"
 #include "Constants.h"
 
+#include <thread>
+
 #include "OpenGLFunctions.h"
 
-#define DIM 3
+
 //#define DELTA_T 0.1f
 //#define MAX_TIME 10
 
@@ -27,8 +29,6 @@ int main()
 	std::vector<std::unique_ptr<Particle<DIM>>> particles;
 	Vector<DIM> position, speed, acceleration;
 
-	std::vector<Particle<DIM>> newParticles;
-
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
 		// generate mass
@@ -40,9 +40,9 @@ int main()
 
 		// generate particle
 		particles.push_back(std::make_unique<Particle<DIM>>(i, position, speed, acceleration, mass));
-
-		newParticles.emplace_back(i, position, speed, acceleration, mass);
 	}
+
+	std::thread t1(&drawParticles<DIM>, &window, particles);
 
 	// print particles
 
