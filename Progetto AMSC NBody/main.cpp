@@ -48,6 +48,11 @@ int main()
 
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
+		(*(particles[i])).print();
+	}
+
+
+/*
 		std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
 		std::cout << "In position" << std::endl;
 		for (unsigned int j = 0; j < DIM; j++)
@@ -119,4 +124,8 @@ int main()
 			}
 		}
 	}
+	
+*/
+	
+	
 }
