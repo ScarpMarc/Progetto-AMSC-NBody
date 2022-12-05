@@ -141,19 +141,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ForceMatrix.cpp" />
-    <ClCompile Include="OpenGLFunctions.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Particle.cpp" />
-    <ClCompile Include="shader.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constants.h" />
     <ClInclude Include="ForceMatrix.h" />
-    <ClInclude Include="OpenGLFunctions.h" />
     <ClInclude Include="Particle.h" />
-    <ClInclude Include="shader.h" />
     <ClInclude Include="simulation_functions.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="Utils.h" />

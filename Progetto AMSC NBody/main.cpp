@@ -9,9 +9,6 @@
 
 #include <thread>
 
-#include "OpenGLFunctions.h"
-
-
 //#define DELTA_T 0.1f
 //#define MAX_TIME 10
 
@@ -20,9 +17,6 @@ using namespace std;
 
 int main()
 {
-	GLFWwindow* window = nullptr;
-	gl_init(&window);
-
 	const unsigned int total_particles(3);
 
 	// vector of unique pointers to Particle objects
@@ -41,8 +35,6 @@ int main()
 		// generate particle
 		particles.push_back(std::make_unique<Particle<DIM>>(i, position, speed, acceleration, mass));
 	}
-
-	std::thread t1(&drawParticles<DIM>, &window, particles);
 
 	// print particles
 
