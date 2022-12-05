@@ -36,12 +36,6 @@
     <ClCompile Include="Utils.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="OpenGLFunctions.cpp">
-      <Filter>File di origine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="shader.cpp">
-      <Filter>File di origine\Graphics</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
@@ -64,12 +58,6 @@
     </ClInclude>
     <ClInclude Include="Constants.h">
       <Filter>File di intestazione</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenGLFunctions.h">
-      <Filter>File di intestazione\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="shader.h">
-      <Filter>File di intestazione\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
