@@ -9,6 +9,8 @@
 /// </summary>
 const unsigned int DIM = 3;
 
+const unsigned int total_particles = 10;
+
 //
 // TIMING
 //

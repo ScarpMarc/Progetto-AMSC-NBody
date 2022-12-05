@@ -28,13 +28,13 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 	GLuint programID = LoadShaders("vertexShader.vertexshader", "fragmentShader.fragmentshader");
 
 	//Position vector
-	std::vector<GLfloat> vertexBufferData = std::vector<GLfloat>(particles.size() * dim);
+	std::vector<GLfloat> vertexBufferData = std::vector<GLfloat>((*particles).size() * dim);
 	// Stroke weight vector
-	std::vector<GLfloat> weightVector = std::vector<GLfloat>(particles.size());
+	std::vector<GLfloat> weightVector = std::vector<GLfloat>((*particles).size());
 
-	std::vector<GLfloat> colourVector = std::vector<GLfloat>(particles.size() * 3);
+	std::vector<GLfloat> colourVector = std::vector<GLfloat>((*particles).size() * 3);
 	{
-		for (unsigned int i = 0; i < particles.size()*3; ++i)
+		for (unsigned int i = 0; i < (*particles).size()*3; ++i)
 		{
 			colourVector[i] = ((double)rand() / (RAND_MAX));
 		}
@@ -76,14 +76,14 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 		// Iterate over all particles and save each position and weight component
 		{
 			unsigned int k = 0, l = 0;
-			for (unsigned int i = 0; i < particles.size(); ++i)
+			for (unsigned int i = 0; i < (*particles).size(); ++i)
 			{
 				// Iterate over the dimensions
 				for (unsigned int vectorDim = 0; vectorDim < dim; ++vectorDim)
 				{
-					vertexBufferData[k++] = particles[i]->get_position()[vectorDim] / screenResX;
+					vertexBufferData[k++] = (*particles)[i]->get_position()[vectorDim] / screenResX;
 				}
-				weightVector[l++] = particles[i]->getMass();
+				weightVector[l++] = (*particles)[i]->getMass();
 			}
 		}
 
@@ -128,7 +128,7 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 		);
 
 		// Draw
-		for (unsigned int counter = 0; counter < particles.size(); ++counter)
+		for (unsigned int counter = 0; counter < (*particles).size(); ++counter)
 		{
 			glPointSize((GLfloat) weightVector[counter]*2);
 			glDrawArrays(GL_POINTS, counter, 1);
