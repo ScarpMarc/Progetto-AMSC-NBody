@@ -37,9 +37,9 @@ int gl_init(GLFWwindow **window)
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(*window, GLFW_STICKY_KEYS, GL_TRUE);
 
-	// Background (Black)
-	glClearColor(0.2f, 0.3f, 0.7f, 0.0f); // Set background color to black and opaque
-	//glClearDepth(1.0f);                   // Set background depth to farthest
+	// Background
+	glClearColor(1.0f, 1.0f, 1.0f, 0.5f); // Set background color 
+	glClearDepth(1.0f);                   // Set background depth to farthest
 	
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	// Enable depth test

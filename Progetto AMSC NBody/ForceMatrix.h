@@ -16,11 +16,13 @@ template <unsigned int dim>
 class ForceMatrix
 {
 public:
-	ForceMatrix(const unsigned int& starting_dim) : force_matrix(starting_dim)
+	ForceMatrix(const unsigned int& starting_dim) 
 	{
 		_updatePartialSums_add(starting_dim); // In the future, call addParticles(starting_dim)
 
 		current_particle_amt = starting_dim;
+
+		force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
 	}
 
 	// TODO
@@ -95,6 +97,7 @@ private:
 		if (row < col) force_matrix[(current_particle_amt - 1) * row - partial_sums[row] + col - 1] = force;
 		else if (row < col) force_matrix[(current_particle_amt - 1) * col - partial_sums[col] + row - 1] = force;
 	}
+
 
 	unsigned int current_particle_amt;
 	//std::vector<std::unique_ptr<Particle<dim>>> activeParticles;
@@ -185,7 +188,7 @@ void ForceMatrix<dim>::_updatePartialSums_add(const unsigned int& add_amt)
 	if (partial_sums.empty()) initial_sum = 0;
 	else initial_sum = *(partial_sums.cend() - 1);
 	unsigned int sum = initial_sum;
-	for (unsigned int i = ForceMatrix<dim>::current_particle_amt; i < current_particle_amt + add_amt; ++i)
+	for (unsigned int i = current_particle_amt; i < current_particle_amt + add_amt; ++i)
 	{
 		sum += i;
 		partial_sums.push_back(sum);

@@ -36,15 +36,15 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 	{
 		for (unsigned int i = 0; i < (*particles).size()*3; ++i)
 		{
-			colourVector[i] = ((double)rand() / (RAND_MAX));
+			colourVector[i] = 0.0f; //((double)rand() / (RAND_MAX));
 		}
 	}
 
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
 	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 10 units
-	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, .1f, 100.0f);
-	// Camera matrix
+	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 1.0f / 1.0f, .1f, 10.0f);
+	//Camera matrix
 	glm::mat4 View = glm::lookAt(
 		glm::vec3(0, 0, 1), // Camera is at (4,3,-3), in World Space
 		glm::vec3(0, 0, 0), // and looks at the origin
@@ -54,12 +54,11 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 	glm::mat4 Model = glm::mat4(1.0f);
 	// Our ModelViewProjection : multiplication of our 3 matrices
 	glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
-
+	
 	// This will identify our vertex buffer
 	GLuint vertexbuffer;
 	// Generate 1 buffer, put the resulting identifier in vertexbuffer
 	glGenBuffers(1, &vertexbuffer);
-	
 
 	GLuint colourbuffer;
 	glGenBuffers(1, &colourbuffer);
@@ -83,14 +82,15 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 				{
 					vertexBufferData[k++] = (*particles)[i]->get_position()[vectorDim] / screenResX;
 				}
-				weightVector[l++] = (*particles)[i]->getMass();
+				//weightVector[l++] = (*particles)[i]->getMass();
+				weightVector[l++] = 5.0;
 			}
 		}
 
 		// The following commands will talk about our 'vertexbuffer' buffer
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		// Give our vertices to OpenGL.
-		glBufferData(GL_ARRAY_BUFFER, vertexBufferData.size(), vertexBufferData.begin()._Ptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, vertexBufferData.size(), &(vertexBufferData[0]), GL_STATIC_DRAW);
 
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
@@ -130,7 +130,7 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 		// Draw
 		for (unsigned int counter = 0; counter < (*particles).size(); ++counter)
 		{
-			glPointSize((GLfloat) weightVector[counter]*2);
+			glPointSize((GLfloat) weightVector[counter]);
 			glDrawArrays(GL_POINTS, counter, 1);
 		}
 
