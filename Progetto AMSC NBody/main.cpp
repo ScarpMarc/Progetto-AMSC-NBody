@@ -48,13 +48,11 @@ int main()
 
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
-<<<<<<< HEAD
 		(*(particles[i])).print();
 	}
 
 
 /*
-=======
 		std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
 		std::cout << "In position" << std::endl;
 		for (unsigned int j = 0; j < DIM; j++)
@@ -75,7 +73,6 @@ int main()
 		}
 	}
 
->>>>>>> 95e00a9c7d833760c465c6dfb7fcb182a4ef9229
 	// UPDATE CYCLE
 
 	ForceMatrix<DIM> force_matrix = ForceMatrix<DIM>(total_particles);
@@ -127,11 +124,8 @@ int main()
 			}
 		}
 	}
-<<<<<<< HEAD
 	
 */
 	
 	
-=======
->>>>>>> 95e00a9c7d833760c465c6dfb7fcb182a4ef9229
 }
