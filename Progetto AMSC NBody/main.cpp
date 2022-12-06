@@ -64,13 +64,13 @@ int main()
 			std::cout << particles[i] ->get_acc()[j] << std::endl;
 		}
 	}
-
+	*/
 	// UPDATE CYCLE
 
 	ForceMatrix<DIM> force_matrix = ForceMatrix<DIM>(total_particles);
 	force_matrix.updateForces(particles);
 	Vector<DIM> temp;
-	double time(0);
+	unsigned int time(0);
 
 	// UPDATE SECTION
 	for (time = 0; time < max_ticks; ++time)
@@ -116,8 +116,6 @@ int main()
 			}
 		}
 	}
-	
-*/
 	
 	
 }
