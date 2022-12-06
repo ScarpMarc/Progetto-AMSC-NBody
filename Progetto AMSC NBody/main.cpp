@@ -28,7 +28,7 @@ int main()
 		// generate mass
 		double mass(static_cast<double>((i+1)*3));
 		// generate new position, velocity and acceleration
-		position = Vector<DIM>({ 0.0 + static_cast<double>(i * 100),0.0 + static_cast<double>(i * 100),0.0 + static_cast<double>(i * 100) });
+		position = Vector<DIM>({ 0.0 + static_cast<double>(i),0.0 + static_cast<double>(i),0.0 + static_cast<double>(i) });
 		speed = Vector<DIM>({ 0.0,0.0,0.0 });
 		acceleration = Vector<DIM>({ 0.0,0.0,0.0 });
 
@@ -38,11 +38,12 @@ int main()
 
 	// print particles
 
+	/*
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
 		(*(particles[i])).print();
 	}
-
+	*/
 
 /*
 		std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
@@ -69,7 +70,7 @@ int main()
 	
 	// UPDATE CYCLE
 
-	ForceMatrix<DIM> force_matrix = ForceMatrix<DIM>(total_particles);
+	ForceMatrix<DIM> force_matrix(total_particles);
 	force_matrix.updateForces(particles);
 	Vector<DIM> temp;
 	unsigned int time(0);
@@ -93,28 +94,31 @@ int main()
 			// updating positions
 			particles[i]->calcNewPosition(1);
 		}
+
+		if(time == 0 || time == max_ticks - 1){
 		
-		cout << "----------------------------------------------------------------\nCycle " 
-			<< time << " (Time " << time/ticks_per_second <<" seconds)\n" << endl;
-		for (unsigned int i = 0; i < total_particles; i++)
-		{
-			std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
-			std::cout << "In position" << std::endl;
-			for (unsigned int j = 0; j < DIM; j++)
+			cout << "----------------------------------------------------------------\nCycle " 
+				<< time << " (Time " << time/ticks_per_second <<" seconds)\n" << endl;
+			for (unsigned int i = 0; i < total_particles; i++)
 			{
-				std::cout << particles[i]->get_position()[j] << std::endl;
-			}
+				std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
+				std::cout << "In position" << std::endl;
+				for (unsigned int j = 0; j < DIM; j++)
+				{
+					std::cout << particles[i]->get_position()[j] << std::endl;
+				}
 
-			std::cout << "With velocity" << std::endl;
-			for (unsigned int j = 0; j < DIM; j++)
-			{
-				std::cout << particles[i]->get_speed()[j] << std::endl;
-			}
+				std::cout << "With velocity" << std::endl;
+				for (unsigned int j = 0; j < DIM; j++)
+				{
+					std::cout << particles[i]->get_speed()[j] << std::endl;
+				}
 
-			std::cout << "and acceleration" << std::endl;
-			for (unsigned int j = 0; j < DIM; j++)
-			{
-				std::cout << particles[i]->get_acc()[j] << std::endl;
+				std::cout << "and acceleration" << std::endl;
+				for (unsigned int j = 0; j < DIM; j++)
+				{
+					std::cout << particles[i]->get_acc()[j] << std::endl;
+				}
 			}
 		}
 	}
