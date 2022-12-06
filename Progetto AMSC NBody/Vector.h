@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <iostream>
+#include <cmath>
 
 template <unsigned int dim>
 class Vector

@@ -120,17 +120,17 @@ void Particle<dim>::print() const
 {
 	constexpr char coord[3] = { 'X', 'Y', 'Z' };
 	std::cout << "Particle ID: " << ID << std::endl;
-	std::cout << "Position";
+	std::cout << "Position" << std::endl;
 	for (int i = 0; i < dim; ++i)
 	{
 		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << pos[i] << std::endl;
 	}
-	std::cout << "Speed";
+	std::cout << "Speed" << std::endl;
 	for (int i = 0; i < dim; ++i)
 	{
 		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << speed[i] << std::endl;
 	}
-	std::cout << "Acceleration";
+	std::cout << "Acceleration" << std::endl;
 	for (int i = 0; i < dim; ++i)
 	{
 		std::cout << std::ios::right << std::setw(15) << coord[i] << ": " << speed[i] << std::endl;
