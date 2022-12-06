@@ -16,11 +16,11 @@ template <unsigned int dim>
 class ForceMatrix
 {
 public:
-	ForceMatrix(const unsigned int& starting_dim) : 
+	ForceMatrix(const unsigned int& starting_dim) 
 	{
 		_updatePartialSums_add(starting_dim); // In the future, call addParticles(starting_dim)
 
-		force_matrix(partial_sums[partial_sums.size() - 1]);
+		current_particle_amt = starting_dim;
 
 		force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
 	}
