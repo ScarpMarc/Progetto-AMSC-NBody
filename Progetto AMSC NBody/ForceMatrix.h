@@ -18,11 +18,23 @@ class ForceMatrix
 public:
 	ForceMatrix(const unsigned int& starting_dim) 
 	{
+		current_particle_amt = 0;
+
 		_updatePartialSums_add(starting_dim); // In the future, call addParticles(starting_dim)
 
-		current_particle_amt = starting_dim;
+		
 
+		/*force_matrix.reserve(starting_dim);
+
+		//force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
+		for (unsigned int i = 0; i < starting_dim; i++)
+		{
+			Vector<dim> temp;
+		}
+		*/
 		force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
+
+		current_particle_amt = starting_dim;
 	}
 
 	// TODO
