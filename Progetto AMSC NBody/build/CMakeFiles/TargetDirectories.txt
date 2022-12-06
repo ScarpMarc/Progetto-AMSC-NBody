@@ -1,0 +1,3 @@
+/home/jellyfish/shared-folder/AMSC/ProgettoNBody/Progetto-AMSC-NBody/Progetto AMSC NBody/build/CMakeFiles/rebuild_cache.dir
+/home/jellyfish/shared-folder/AMSC/ProgettoNBody/Progetto-AMSC-NBody/Progetto AMSC NBody/build/CMakeFiles/edit_cache.dir
+/home/jellyfish/shared-folder/AMSC/ProgettoNBody/Progetto-AMSC-NBody/Progetto AMSC NBody/build/CMakeFiles/main.dir
