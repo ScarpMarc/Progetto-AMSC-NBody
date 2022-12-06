@@ -66,6 +66,7 @@ int main()
 	}
 */
 
+	
 	// UPDATE CYCLE
 
 	ForceMatrix<DIM> force_matrix = ForceMatrix<DIM>(total_particles);
