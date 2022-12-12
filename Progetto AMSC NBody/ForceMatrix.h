@@ -22,8 +22,6 @@ public:
 
 		_updatePartialSums_add(starting_dim); // In the future, call addParticles(starting_dim)
 
-		
-
 		/*force_matrix.reserve(starting_dim);
 
 		//force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
@@ -42,7 +40,7 @@ public:
 
 	void removeParticles(const unsigned int& add_amt);
 
-	// TODO capire qual è il modo più efficiente
+	// TODO capire qual Ã¨ il modo piÃ¹ efficiente
 	/// <summary>
 	/// Updates all forces in the internal matrix. Internally, it queries particles and asks them to calculate their attraction/repulsion to all other particles.
 	/// </summary>
