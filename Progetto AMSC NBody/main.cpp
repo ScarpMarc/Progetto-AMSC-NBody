@@ -69,7 +69,7 @@ int main()
 	
 	// UPDATE CYCLE
 
-	ForceMatrix<DIM> force_matrix = ForceMatrix<DIM>(total_particles);
+	ForceMatrix<DIM> force_matrix(total_particles);
 	force_matrix.updateForces(particles);
 	Vector<DIM> temp;
 	unsigned int time(0);
