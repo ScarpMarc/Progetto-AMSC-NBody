@@ -24,7 +24,7 @@ glm::mat4 getProjectionMatrix()
 }
 
 // Initial position : on +Z
-glm::vec3 position = glm::vec3(0, 0, 5);
+glm::vec3 position = glm::vec3(0, 0, 3);
 // Initial horizontal angle : toward -Z
 float horizontalAngle = 3.14f;
 // Initial vertical angle : none
@@ -52,8 +52,8 @@ void computeMatricesFromInputs(GLFWwindow** window)
 	glfwSetCursorPos(*window, screenResX / 2, screenResY / 2);
 
 	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(screenResX / 2 - xpos);
-	verticalAngle += mouseSpeed * float(screenResY / 2 - ypos);
+	/*horizontalAngle += mouseSpeed * float(screenResX / 2 - xpos);
+	verticalAngle += mouseSpeed * float(screenResY / 2 - ypos);*/
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
@@ -73,7 +73,7 @@ void computeMatricesFromInputs(GLFWwindow** window)
 	glm::vec3 up = glm::cross(right, direction);
 
 	// Move forward
-	if (glfwGetKey(*window, GLFW_KEY_UP) == GLFW_PRESS)
+	/*if (glfwGetKey(*window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
 		position += direction * deltaTime * speed;
 	}
@@ -91,7 +91,7 @@ void computeMatricesFromInputs(GLFWwindow** window)
 	if (glfwGetKey(*window, GLFW_KEY_LEFT) == GLFW_PRESS)
 	{
 		position -= right * deltaTime * speed;
-	}
+	}*/
 
 	float FoV = initialFoV;// - 5 * glfwGetMouseWheel(); // Now GLFW 3 requires setting up a callback for this. It's a bit too complicated for this beginner's tutorial, so it's disabled instead.
 

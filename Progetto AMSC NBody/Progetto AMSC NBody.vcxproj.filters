@@ -42,6 +42,9 @@
     <ClCompile Include="shader.cpp">
       <Filter>File di origine\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Controls.cpp">
+      <Filter>File di origine\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
@@ -71,6 +74,9 @@
     <ClInclude Include="shader.h">
       <Filter>File di intestazione\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Controls.h">
+      <Filter>File di intestazione\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vertexShader.vertexshader">
@@ -79,5 +85,8 @@
     <None Include="fragmentShader.fragmentshader">
       <Filter>File di risorse</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Resources\particle.DDS" />
   </ItemGroup>
 </Project>

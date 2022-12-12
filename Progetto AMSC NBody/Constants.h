@@ -9,7 +9,7 @@
 /// </summary>
 const unsigned int DIM = 3;
 
-const unsigned int total_particles = 5;
+const unsigned int total_particles = 20;
 
 //
 // TIMING
@@ -33,7 +33,7 @@ const double ticks_per_second = 100;
 /// <summary>
 /// Amount of real-time milliseconds that the drawing routine pauses for after each drawing cycle.
 /// </summary>
-const unsigned int screen_refresh_millis = 10;
+const unsigned int screen_refresh_millis = 200;
 
 /// <summary>
 /// Screen resolution in the horizontal direction

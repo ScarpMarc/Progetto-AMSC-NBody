@@ -9,6 +9,8 @@
 #include "Constants.h"
 #include "Controls.h"
 
+#include <iostream>
+
 #include "../libs/include/GL/glew.h"
 #include "../glfw/include/GLFW/glfw3.h"
 #include "../glm/glm/glm.hpp"
@@ -94,19 +96,20 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 			Particle<dim>& p = *(particles->at(i)); // shortcut
 
 			//p.cameradistance = glm::length2(p.pos - CameraPosition);
-			//ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
 
 			// Fill the GPU buffer
-			g_particule_position_size_data[4 * i + 0] = p.get_position()[0];
-			g_particule_position_size_data[4 * i + 1] = p.get_position()[1];
-			g_particule_position_size_data[4 * i + 2] = p.get_position()[2];
+			// TODO account for different dims
+			g_particule_position_size_data[4 * i + 0] = (p.get_position()[0]) / screenResX;
+			g_particule_position_size_data[4 * i + 1] = (p.get_position()[1]) / screenResY;
+			g_particule_position_size_data[4 * i + 2] = (p.get_position()[2]) / screenResX;
+			//std::cout << g_particule_position_size_data[4 * i + 0] << "; " << g_particule_position_size_data[4 * i + 1] << "; " << g_particule_position_size_data[4 * i + 2] << std::endl;
 
-			g_particule_position_size_data[4 * i + 3] = p.getMass();
+			g_particule_position_size_data[4 * i + 3] = .01;//p.getMass();
 
-			g_particule_color_data[4 * i + 0] = 1.0;//p.r;
-			g_particule_color_data[4 * i + 1] = 1.0;//p.g;
-			g_particule_color_data[4 * i + 2] = 1.0;//p.b;
-			g_particule_color_data[4 * i + 3] = 0.5;//p.a;
+			g_particule_color_data[4 * i + 0] = 0;//p.r;
+			g_particule_color_data[4 * i + 1] = 0;//p.g;
+			g_particule_color_data[4 * i + 2] = 0;//p.b;
+			g_particule_color_data[4 * i + 3] = 128;//p.a;
 
 			++ParticlesCount;
 		}
@@ -156,7 +159,7 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 		glVertexAttribPointer(
 			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-			4,                                // size : x + y + z + size => 4
+			dim+1,                                // size : x + y + z + size => 4
 			GL_FLOAT,                         // type
 			GL_FALSE,                         // normalized?
 			0,                                // stride
@@ -209,8 +212,4 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 	glDeleteProgram(programID);
 	glDeleteTextures(1, &Texture);
 	glDeleteVertexArrays(1, &VertexArrayID);
-
-
-	// Close OpenGL window and terminate GLFW
-	glfwTerminate();
 }

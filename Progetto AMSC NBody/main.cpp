@@ -121,4 +121,10 @@ int main()
 
 	drawParticles(&window, &particles);
 	//std::thread t1(&drawParticles<DIM>, &window, &particles);
+
+	// Close OpenGL window and terminate GLFW
+	glfwTerminate();
+
+	// TODO
+	// Stop the other thread gracefully...
 }
