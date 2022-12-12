@@ -7,6 +7,7 @@
 #include "Particle.h"
 #include "shader.h"
 #include "Constants.h"
+#include "Controls.h"
 
 #include "../libs/include/GL/glew.h"
 #include "../glfw/include/GLFW/glfw3.h"
@@ -18,145 +19,198 @@
 
 int gl_init(GLFWwindow** window);
 
+extern "C"
+{
+	GLuint loadDDS(const char* imagepath);
+}
+
 template <unsigned int dim>
-void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim>>> *particles)
+void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim>>>* particles)
 {
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
+
 	// Create and compile our GLSL program from the shaders
 	GLuint programID = LoadShaders("vertexShader.vertexshader", "fragmentShader.fragmentshader");
 
-	//Position vector
-	std::vector<GLfloat> vertexBufferData = std::vector<GLfloat>((*particles).size() * dim);
-	// Stroke weight vector
-	std::vector<GLfloat> weightVector = std::vector<GLfloat>((*particles).size());
+	// Vertex shader
+	GLuint CameraRight_worldspace_ID = glGetUniformLocation(programID, "CameraRight_worldspace");
+	GLuint CameraUp_worldspace_ID = glGetUniformLocation(programID, "CameraUp_worldspace");
+	GLuint ViewProjMatrixID = glGetUniformLocation(programID, "VP");
 
-	std::vector<GLfloat> colourVector = std::vector<GLfloat>((*particles).size() * 3);
-	{
-		for (unsigned int i = 0; i < (*particles).size()*3; ++i)
-		{
-			colourVector[i] = 0.0f; //((double)rand() / (RAND_MAX));
-		}
-	}
+	// fragment shader
+	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 
-	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	GLuint Texture = loadDDS("../Resources/particle.DDS");
 
-	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 10 units
-	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 1.0f / 1.0f, .1f, 10.0f);
-	//Camera matrix
-	glm::mat4 View = glm::lookAt(
-		glm::vec3(0, 0, 1), // Camera is at (4,3,-3), in World Space
-		glm::vec3(0, 0, 0), // and looks at the origin
-		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-	);
-	// Model matrix : an identity matrix (model will be at the origin)
-	glm::mat4 Model = glm::mat4(1.0f);
-	// Our ModelViewProjection : multiplication of our 3 matrices
-	glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
-	
-	// This will identify our vertex buffer
-	GLuint vertexbuffer;
-	// Generate 1 buffer, put the resulting identifier in vertexbuffer
-	glGenBuffers(1, &vertexbuffer);
+	static GLfloat* g_particule_position_size_data = new GLfloat[particles->size() * 4];
+	static GLubyte* g_particule_color_data = new GLubyte[particles->size() * 4];
 
-	GLuint colourbuffer;
-	glGenBuffers(1, &colourbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, colourbuffer);
-	glBufferData(GL_ARRAY_BUFFER, colourVector.size(), colourVector.begin()._Ptr, GL_STATIC_DRAW);
+	// The VBO containing the 4 vertices of the particles.
+	// Thanks to instancing, they will be shared by all particles.
+	static const GLfloat g_vertex_buffer_data[] = {
+		 -0.5f, -0.5f, 0.0f,
+		  0.5f, -0.5f, 0.0f,
+		 -0.5f,  0.5f, 0.0f,
+		  0.5f,  0.5f, 0.0f,
+	};
 
-	unsigned int iteration = 0;
+	GLuint billboard_vertex_buffer;
+	glGenBuffers(1, &billboard_vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-	// TODO: proof of concept. Does not support adding new particles. Also: create external function for updating weights 
-	//		and positions separately since weights are not expected to change often
+	// The VBO containing the positions and sizes of the particles
+	GLuint particles_position_buffer;
+	glGenBuffers(1, &particles_position_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
+	glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+
+	// The VBO containing the colors of the particles
+	GLuint particles_color_buffer;
+	glGenBuffers(1, &particles_color_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
+	glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
 
 	do
 	{
-		// Iterate over all particles and save each position and weight component
+		// Clear the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		computeMatricesFromInputs(window);
+		glm::mat4 ProjectionMatrix = getProjectionMatrix();
+		glm::mat4 ViewMatrix = getViewMatrix();
+
+		glm::vec3 CameraPosition(glm::inverse(ViewMatrix)[3]);
+
+		glm::mat4 ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
+
+		int ParticlesCount = 0;
+		for (int i = 0; i < particles->size(); i++)
 		{
-			unsigned int k = 0, l = 0;
-			for (unsigned int i = 0; i < (*particles).size(); ++i)
-			{
-				// Iterate over the dimensions
-				for (unsigned int vectorDim = 0; vectorDim < dim; ++vectorDim)
-				{
-					vertexBufferData[k++] = (*particles)[i]->get_position()[vectorDim] / screenResX;
-				}
-				//weightVector[l++] = (*particles)[i]->getMass();
-				weightVector[l++] = 5.0;
-			}
+			Particle<dim>& p = *(particles->at(i)); // shortcut
+
+			//p.cameradistance = glm::length2(p.pos - CameraPosition);
+			//ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
+
+			// Fill the GPU buffer
+			g_particule_position_size_data[4 * i + 0] = p.get_position()[0];
+			g_particule_position_size_data[4 * i + 1] = p.get_position()[1];
+			g_particule_position_size_data[4 * i + 2] = p.get_position()[2];
+
+			g_particule_position_size_data[4 * i + 3] = p.getMass();
+
+			g_particule_color_data[4 * i + 0] = 1.0;//p.r;
+			g_particule_color_data[4 * i + 1] = 1.0;//p.g;
+			g_particule_color_data[4 * i + 2] = 1.0;//p.b;
+			g_particule_color_data[4 * i + 3] = 0.5;//p.a;
+
+			++ParticlesCount;
 		}
 
-		// The following commands will talk about our 'vertexbuffer' buffer
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		// Give our vertices to OpenGL.
-		glBufferData(GL_ARRAY_BUFFER, vertexBufferData.size(), &(vertexBufferData[0]), GL_STATIC_DRAW);
+		//SortParticles();
 
-		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
-		//glMatrixMode(GL_MODELVIEW);     // To operate on model-view matrix
+		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+		glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+		glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLfloat) * 4, g_particule_position_size_data);
 
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+		glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+		glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Use our shader
 		glUseProgram(programID);
 
-		// 1st attribute buffer : vertices
+		// Bind our texture in Texture Unit 0
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Texture);
+		// Set our "myTextureSampler" sampler to use Texture Unit 0
+		glUniform1i(TextureID, 0);
+
+		// Same as the billboards tutorial
+		glUniform3f(CameraRight_worldspace_ID, ViewMatrix[0][0], ViewMatrix[1][0], ViewMatrix[2][0]);
+		glUniform3f(CameraUp_worldspace_ID, ViewMatrix[0][1], ViewMatrix[1][1], ViewMatrix[2][1]);
+
+		glUniformMatrix4fv(ViewProjMatrixID, 1, GL_FALSE, &ViewProjectionMatrix[0][0]);
+
+		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
 		glVertexAttribPointer(
-			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			dim,                // size
+			0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
 			0,                  // stride
 			(void*)0            // array buffer offset
 		);
 
-		// 2nd attribute buffer : colors
+		// 2nd attribute buffer : positions of particles' centers
 		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, colourbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 		glVertexAttribPointer(
 			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-			3,                                // size
+			4,                                // size : x + y + z + size => 4
 			GL_FLOAT,                         // type
 			GL_FALSE,                         // normalized?
 			0,                                // stride
 			(void*)0                          // array buffer offset
 		);
 
-		// Draw
-		for (unsigned int counter = 0; counter < (*particles).size(); ++counter)
-		{
-			glPointSize((GLfloat) weightVector[counter]);
-			glDrawArrays(GL_POINTS, counter, 1);
-		}
+		// 3rd attribute buffer : particles' colors
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+		glVertexAttribPointer(
+			2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+			4,                                // size : r + g + b + a => 4
+			GL_UNSIGNED_BYTE,                 // type
+			GL_TRUE,                          // normalized?    *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+		// These functions are specific to glDrawArrays*Instanced*.
+		// The first parameter is the attribute buffer we're talking about.
+		// The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
+		// http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor.xml
+		glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
+		glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
+		glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
+
+		// Draw the particules !
+		// This draws many times a small triangle_strip (which looks like a quad).
+		// This is equivalent to :
+		// for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4), 
+		// but faster.
+		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticlesCount);
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
 
 		// Swap buffers
 		glfwSwapBuffers(*window);
 		glfwPollEvents();
 
-		iteration += 1;
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(screen_refresh_millis));
-
 	} // Check if the ESC key was pressed or the window was closed
 	while (glfwGetKey(*window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
 		glfwWindowShouldClose(*window) == 0);
 
-	// Cleanup VBO
-	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteVertexArrays(1, &VertexArrayID);
+	// Cleanup VBO and shader
+	glDeleteBuffers(1, &particles_color_buffer);
+	glDeleteBuffers(1, &particles_position_buffer);
+	glDeleteBuffers(1, &billboard_vertex_buffer);
 	glDeleteProgram(programID);
-
+	glDeleteTextures(1, &Texture);
 	glDeleteVertexArrays(1, &VertexArrayID);
+
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
-
 }

@@ -1,54 +1,156 @@
 #include "OpenGLFunctions.h"
 #include "shader.h"
 
-int gl_init(GLFWwindow **window)
+int gl_init(GLFWwindow** window)
 {
-	// GLFW initialisation
+	// Initialise GLFW
 	if (!glfwInit())
 	{
+		fprintf(stderr, "Failed to initialize GLFW\n");
+		getchar();
 		return -1;
 	}
 
-	// Open window
-	glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	(*window) = glfwCreateWindow(screenResX, screenResY, "NBody", NULL, NULL);
-	if (window == NULL)
-	{
+	*window = glfwCreateWindow(screenResX, screenResY, "NBody", NULL, NULL);
+	if (*window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
+		getchar();
 		glfwTerminate();
 		return -1;
 	}
 	glfwMakeContextCurrent(*window);
 
 	// Initialize GLEW
-	glewExperimental = true; // Needed in core profile
-	if (glewInit() != GLEW_OK)
-	{
+	glewExperimental = true; // Needed for core profile
+	if (glewInit() != GLEW_OK) {
 		fprintf(stderr, "Failed to initialize GLEW\n");
+		getchar();
+		glfwTerminate();
 		return -1;
 	}
 
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(*window, GLFW_STICKY_KEYS, GL_TRUE);
+	// Hide the mouse and enable unlimited mouvement
+	glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	// Background
-	glClearColor(1.0f, 1.0f, 1.0f, 0.5f); // Set background color 
-	glClearDepth(1.0f);                   // Set background depth to farthest
-	
-	glEnable(GL_PROGRAM_POINT_SIZE);
+	// Set the mouse at the center of the screen
+	glfwPollEvents();
+	glfwSetCursorPos(*window, screenResX / 2, screenResY / 2);
+
+	// Dark blue background
+	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+
 	// Enable depth test
-	glEnable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
+	glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc(GL_LESS);
-	glShadeModel(GL_SMOOTH);   // Enable smooth shading
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // Nice perspective corrections
 
 	return 0;
+}
+
+#define FOURCC_DXT1 0x31545844 // Equivalent to "DXT1" in ASCII
+#define FOURCC_DXT3 0x33545844 // Equivalent to "DXT3" in ASCII
+#define FOURCC_DXT5 0x35545844 // Equivalent to "DXT5" in ASCII
+
+extern "C"
+{
+	GLuint loadDDS(const char* imagepath)
+	{
+		unsigned char header[124];
+
+		FILE* fp;
+
+		/* try to open the file */
+		fopen_s(&fp, imagepath, "rb");
+		if (fp == NULL) {
+			printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar();
+			return 0;
+		}
+
+		/* verify the type of file */
+		char filecode[4];
+		fread(filecode, 1, 4, fp);
+		if (strncmp(filecode, "DDS ", 4) != 0) {
+			fclose(fp);
+			return 0;
+		}
+
+		/* get the surface desc */
+		fread(&header, 124, 1, fp);
+
+		unsigned int height = *(unsigned int*)&(header[8]);
+		unsigned int width = *(unsigned int*)&(header[12]);
+		unsigned int linearSize = *(unsigned int*)&(header[16]);
+		unsigned int mipMapCount = *(unsigned int*)&(header[24]);
+		unsigned int fourCC = *(unsigned int*)&(header[80]);
+
+
+		unsigned char* buffer;
+		unsigned int bufsize;
+		/* how big is it going to be including all mipmaps? */
+		bufsize = mipMapCount > 1 ? linearSize * 2 : linearSize;
+		buffer = (unsigned char*)malloc(bufsize * sizeof(unsigned char));
+		fread(buffer, 1, bufsize, fp);
+		/* close the file pointer */
+		fclose(fp);
+
+		unsigned int components = (fourCC == FOURCC_DXT1) ? 3 : 4;
+		unsigned int format;
+		switch (fourCC)
+		{
+		case FOURCC_DXT1:
+			format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+			break;
+		case FOURCC_DXT3:
+			format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+			break;
+		case FOURCC_DXT5:
+			format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+			break;
+		default:
+			free(buffer);
+			return 0;
+		}
+
+		// Create one OpenGL texture
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+
+		// "Bind" the newly created texture : all future texture functions will modify this texture
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		unsigned int blockSize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
+		unsigned int offset = 0;
+
+		/* load the mipmaps */
+		for (unsigned int level = 0; level < mipMapCount && (width || height); ++level)
+		{
+			unsigned int size = ((width + 3) / 4) * ((height + 3) / 4) * blockSize;
+			glCompressedTexImage2D(GL_TEXTURE_2D, level, format, width, height,
+				0, size, buffer + offset);
+
+			offset += size;
+			width /= 2;
+			height /= 2;
+
+			// Deal with Non-Power-Of-Two textures. This code is not included in the webpage to reduce clutter.
+			if (width < 1) width = 1;
+			if (height < 1) height = 1;
+
+		}
+
+		free(buffer);
+		return textureID;
+	}
 }
 

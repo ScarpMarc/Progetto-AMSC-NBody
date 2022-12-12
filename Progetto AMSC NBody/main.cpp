@@ -35,7 +35,7 @@ void mainLoop()
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
 		// generate mass
-		double mass(static_cast<double>((i + 1) * 2000 * distr(gen)));
+		double mass(static_cast<double>((i + 1) * 10 * distr(gen)));
 		// generate new position, velocity and acceleration
 		position = Vector<DIM>({ 0.0 + static_cast<double>((double)distr(gen)),0.0 + static_cast<double>((double)distr(gen)),0.0 - static_cast<double>((double)distr(gen)) });
 		speed = Vector<DIM>({ (double)distr(gen),(double)distr(gen),(double)distr(gen) });

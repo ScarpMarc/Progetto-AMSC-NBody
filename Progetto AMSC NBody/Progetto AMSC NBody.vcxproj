@@ -140,6 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Controls.cpp" />
     <ClCompile Include="ForceMatrix.cpp" />
     <ClCompile Include="OpenGLFunctions.cpp" />
     <ClCompile Include="main.cpp" />
@@ -150,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="Controls.h" />
     <ClInclude Include="ForceMatrix.h" />
     <ClInclude Include="OpenGLFunctions.h" />
     <ClInclude Include="Particle.h" />
@@ -162,6 +164,9 @@
   <ItemGroup>
     <None Include="fragmentShader.fragmentshader" />
     <None Include="vertexShader.vertexshader" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Resources\particle.DDS" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
