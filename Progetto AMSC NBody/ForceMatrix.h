@@ -8,6 +8,9 @@
 #include "Types.h"
 #include "Vector.h"
 
+// for debug
+#include <iostream>
+
 /// <summary>
 /// Represents the force interactions between all the particles and provides methods for calculating resulting forces that hide parallelism.
 /// </summary>
@@ -22,7 +25,14 @@ public:
 
 		current_particle_amt = starting_dim;
 
-		force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
+		force_matrix.reserve(starting_dim);
+		
+		//force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
+		for (unsigned int i = 0; i < starting_dim; i++)
+		{
+			Vector<dim> temp;
+		}
+		
 	}
 
 	// TODO
@@ -30,7 +40,7 @@ public:
 
 	void removeParticles(const unsigned int& add_amt);
 
-	// TODO capire qual è il modo più efficiente
+	// TODO capire qual ï¿½ il modo piï¿½ efficiente
 	/// <summary>
 	/// Updates all forces in the internal matrix. Internally, it queries particles and asks them to calculate their attraction/repulsion to all other particles.
 	/// </summary>
@@ -98,7 +108,7 @@ private:
 		else if (row < col) force_matrix[(current_particle_amt - 1) * col - partial_sums[col] + row - 1] = force;
 	}
 
-	unsigned int current_particle_amt;
+	unsigned int current_particle_amt = 0;
 	//std::vector<std::unique_ptr<Particle<dim>>> activeParticles;
 	// We only keep positive entries of the symmetric matrix (i.e. those above the diagonal)
 	std::vector<Vector<dim>> force_matrix;
