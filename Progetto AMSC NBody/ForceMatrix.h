@@ -30,9 +30,10 @@ public:
 			Vector<dim> temp;
 		}
 		*/
-		force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
 
 		current_particle_amt = starting_dim;
+
+		force_matrix = std::vector<Vector<dim>>(partial_sums[current_particle_amt - 1]);
 	}
 
 	// TODO
