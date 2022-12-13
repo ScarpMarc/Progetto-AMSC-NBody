@@ -26,11 +26,13 @@ int main()
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
 		// generate mass
-		double mass(static_cast<double>((i+1)*3));
+		double mass(static_cast<double>((/*i+*/1)*3*10e3));
 		// generate new position, velocity and acceleration
 		position = Vector<DIM>({ 0.0 + static_cast<double>(i),0.0 + static_cast<double>(i),0.0 + static_cast<double>(i) });
+		//position = Vector<DIM>({ (i==1)*1.0 + (i == 2) * 0.7, (i==2)*0.5, 0.0});
 		speed = Vector<DIM>({ 0.0,0.0,0.0 });
 		acceleration = Vector<DIM>({ 0.0,0.0,0.0 });
+		
 
 		// generate particle
 		particles.push_back(std::make_unique<Particle<DIM>>(i, position, speed, acceleration, mass));
