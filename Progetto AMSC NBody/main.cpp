@@ -102,7 +102,7 @@ void mainLoop()
 		//compute forces
 		force_matrix.updateForces(particles);
 #pragma omp parallel for
-		for (unsigned int i = 0; i < total_particles; i++)
+		for (int i = 0; i < total_particles; i++)
 		{
 			// updating forces
 			temp = force_matrix.getTotalForceOnParticle(i);
@@ -110,11 +110,12 @@ void mainLoop()
 		}
 
 #pragma omp parallel for
-		for (unsigned int i = 0; i < total_particles; i++)
+		for (int i = 0; i < total_particles; i++)
 		{
 			// updating positions
 			particles[i]->calcNewPosition(1);
 		}
+
 		for (unsigned int i = 0; i < total_particles; i++)
 		{
 
@@ -141,7 +142,7 @@ int main()
 
 	std::thread t0(mainLoop);
 
-	//drawParticles(&window, &particles);
+	drawParticles(&window, &particles);
 	//std::thread t1(&drawParticles<DIM>, &window, &particles);
 
 	// Close OpenGL window and terminate GLFW
