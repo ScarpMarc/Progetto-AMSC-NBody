@@ -9,13 +9,12 @@
 #include "Constants.h"
 
 #include <random>
-
+#include <numeric>
 #include <thread>
 
 #include "OpenGLFunctions.h"
 
-//#define DELTA_T 0.1f
-//#define MAX_TIME 10
+#include "Globals.h"
 
 using namespace std;
 
@@ -24,13 +23,13 @@ std::vector<std::unique_ptr<Particle<DIM>>> particles;
 const unsigned int testpnum = 10;
 void mainLoop()
 {
+	programme_start = time(0);
 	// vector of unique pointers to Particle objects
 	Vector<DIM> position, speed, acceleration;
 
 	std::random_device rd; // obtain a random number from hardware
 	std::mt19937 gen(rd()); // seed the generator
 	std::uniform_int_distribution<> distr(-2000, 2000); // define the range
-
 
 	for (int i = 0; i < testpnum; i++)
 	{
@@ -55,34 +54,10 @@ void mainLoop()
 	// print particles
 
 
-	for (unsigned int i = 0; i < total_particles; i++)
+	/*for (unsigned int i = 0; i < total_particles; i++)
 	{
 		//(*(particles[i])).print();
-	}
-
-
-
-	/*
-		std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
-		std::cout << "In position" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[i] ->get_position()[j] << std::endl;
-		}
-
-		std::cout << "With velocity" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[i] ->get_speed()[j] << std::endl;
-		}
-
-		std::cout << "and acceleration" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[i] ->get_acc()[j] << std::endl;
-		}
 	}*/
-
 
 	// UPDATE CYCLE
 
@@ -96,41 +71,80 @@ void mainLoop()
 	// UPDATE SECTION
 	for (time = 0; time < max_ticks; ++time)
 	{
-		auto start = chrono::high_resolution_clock::now();
+#ifdef ADVANCED_PROFILING
+		std::array<long long int, total_particles> forceComp_durations_this_tick, posComp_durations_this_tick;
+		std::chrono::microseconds matrixComp_duration_this_tick;
+#endif
+		cout << "Iteration " << std::setw(6) << time << " (simulation seconds: " << std::setw(4) << (double)(time + 1) / ticks_per_second << ")";
 
-		cout << "Iteration " << std::setw(6) << time << " (simulation seconds: " << std::setw(4) << (double)time / ticks_per_second << ") --- ";
+		chrono::steady_clock::time_point start = chrono::high_resolution_clock::now();
+
+#ifdef ADVANCED_PROFILING
+		chrono::steady_clock::time_point matrixComp_start = chrono::high_resolution_clock::now();
+#endif
 		//compute forces
 		force_matrix.updateForces(particles);
-#pragma omp parallel for
+#ifdef ADVANCED_PROFILING
+		chrono::steady_clock::time_point matrixComp_end = chrono::high_resolution_clock::now();
+		matrixComp_duration_this_tick = chrono::duration_cast<chrono::microseconds>(matrixComp_end - matrixComp_start);
+		matrixComp_mean_duration += matrixComp_duration_this_tick.count();
+#endif
+
+#pragma omp parallel for private(temp)
 		for (int i = 0; i < total_particles; i++)
 		{
+#ifdef ADVANCED_PROFILING
+			chrono::steady_clock::time_point forceComp_start = chrono::high_resolution_clock::now();
+#endif
 			// updating forces
 			temp = force_matrix.getTotalForceOnParticle(i);
 			particles[i]->updateResultingForce(temp);
+
+#ifdef ADVANCED_PROFILING
+			chrono::steady_clock::time_point forceComp_end = chrono::high_resolution_clock::now();
+			forceComp_durations_this_tick[i] = chrono::duration_cast<chrono::microseconds>(forceComp_end - forceComp_start).count();
+#endif
 		}
 
 #pragma omp parallel for
 		for (int i = 0; i < total_particles; i++)
 		{
+#ifdef ADVANCED_PROFILING
+			chrono::steady_clock::time_point posComp_start = chrono::high_resolution_clock::now();
+#endif
 			// updating positions
 			particles[i]->calcNewPosition(1);
+
+#ifdef ADVANCED_PROFILING
+			chrono::steady_clock::time_point posComp_end = chrono::high_resolution_clock::now();
+			posComp_durations_this_tick[i] = chrono::duration_cast<chrono::microseconds>(posComp_end - posComp_start).count();
+#endif
 		}
 
-		for (unsigned int i = 0; i < total_particles; i++)
+		/*for (unsigned int i = 0; i < total_particles; i++)
 		{
-
 			//(*(particles[i])).print();
-		}
+		}*/
+
+		forceComp_mean_durations_per_tick += accumulate(forceComp_durations_this_tick.begin(), forceComp_durations_this_tick.end(), 0LL) / total_particles;
+
+		posComp_mean_durations_per_tick += accumulate(posComp_durations_this_tick.begin(), posComp_durations_this_tick.end(), 0LL) / total_particles;
 
 		//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		auto end = chrono::high_resolution_clock::now();
 		auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-		cout << "Execution time: " << std::setw(15) << duration.count() << " us" << endl;
 
+		cout << " --- Execution time: " << std::setw(15) << duration.count() << " us";
+
+		cout << endl;
 	}
 
 	auto simend = chrono::high_resolution_clock::now();
 	auto simduration = chrono::duration_cast<chrono::microseconds>(simend - simstart);
+
+	forceComp_mean_durations_per_tick /= max_ticks;
+	posComp_mean_durations_per_tick /= max_ticks;
+	matrixComp_mean_duration /= max_ticks;
 
 	cout << "SIMULATION ENDED. Time taken: " << simduration.count() / 1000000 << " s" << endl;
 }

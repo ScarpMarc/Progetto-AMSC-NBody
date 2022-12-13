@@ -5,7 +5,6 @@
 #include "Utils.h"
 
 #include "Particle.h"
-#include "Types.h"
 #include "Vector.h"
 
 // for debug
@@ -173,7 +172,8 @@ void ForceMatrix<dim>::updateForces(const std::vector<std::unique_ptr<Particle<d
 {
 	for (unsigned int i = 0; i < particleInteractions.size() - 1; ++i)
 	{
-		for (unsigned int j = i + 1; j < particleInteractions.size(); ++j)
+#pragma omp parallel for
+		for (int j = i + 1; j < particleInteractions.size(); ++j)
 		{
 			_setInteraction(i, j, particleInteractions[i]->calcForce(*particleInteractions[j]));
 		}
