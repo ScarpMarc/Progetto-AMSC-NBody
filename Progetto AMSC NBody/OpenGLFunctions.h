@@ -1,4 +1,7 @@
 #pragma once
+//#define GLEW_STATIC
+
+
 #include <iostream>
 #include <vector>
 

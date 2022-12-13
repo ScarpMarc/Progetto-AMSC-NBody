@@ -100,7 +100,7 @@ private:
 
 	// TODO Set value
 	// Mass constant k
-	const double mass_constant_k = 6.673e-11;
+	const double mass_constant_k = 6.673e-11;//0.001;
 
 	// TODO Electric constant
 
@@ -178,7 +178,7 @@ Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
 {
 	Vector<dim> displacement = calcDistance(other);
 	double distance = displacement.euNorm();
-	return displacement * (-mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
+	return displacement * (/*-*/mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
 }
 
 template<unsigned int dim>

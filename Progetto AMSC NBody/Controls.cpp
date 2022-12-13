@@ -32,7 +32,7 @@ float verticalAngle = 0.0f;
 // Initial Field of View
 float initialFoV = 45.0f;
 
-float speed = 3.0f; // 3 units / second
+float speed = 1.0f; // 1 units / second
 float mouseSpeed = 0.005f;
 
 void computeMatricesFromInputs(GLFWwindow** window)
@@ -82,7 +82,7 @@ void computeMatricesFromInputs(GLFWwindow** window)
 	{
 		position -= direction * deltaTime * speed;
 	}
-	/*// Strafe right
+	// Strafe right
 	if (glfwGetKey(*window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 	{
 		position += right * deltaTime * speed;
@@ -91,7 +91,7 @@ void computeMatricesFromInputs(GLFWwindow** window)
 	if (glfwGetKey(*window, GLFW_KEY_LEFT) == GLFW_PRESS)
 	{
 		position -= right * deltaTime * speed;
-	}*/
+	}
 
 	float FoV = initialFoV;// - 5 * glfwGetMouseWheel(); // Now GLFW 3 requires setting up a callback for this. It's a bit too complicated for this beginner's tutorial, so it's disabled instead.
 

@@ -95,17 +95,17 @@ public:
 	constexpr Vector<dim>& operator^=(const Vector<dim>& other)
 	{
 		// Not using a cascading switch statement in fear that the compiler may actually perform this evaluation...
-		if (dim == 1)
+		if constexpr (dim == 1)
 		{
 			components[0] = 0;
 		}
-		else if (dim == 2)
+		else if constexpr  (dim == 2)
 		{
 			components[2U] = components[0U] * other[1U] - components[1U] * other[0U];
 			components[0U] = 0;
 			components[1U] = 0;
 		}
-		else if (dim == 3)
+		else if constexpr  (dim == 3)
 		{
 			components[0U] = components[1U] * other[2U] - components[2U] * other[1U];
 			components[1U] = components[2U] * other[0U] - components[0U] * other[2U];
@@ -216,5 +216,5 @@ double Vector<dim>::euNorm() const
 {
 	double sum = 0;
 	for (unsigned int i = 0; i < dim; ++i) sum += components[i] * components[i];
-	return sqrt(sum);
+	return std::sqrt(sum);
 }
