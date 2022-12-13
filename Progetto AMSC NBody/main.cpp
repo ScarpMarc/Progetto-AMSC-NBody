@@ -40,7 +40,7 @@ void mainLoop()
 			{
 				// generate mass
 				// 1/9 3/9 5/9 7/9 9/9
-				double mass(static_cast<double>(1.0e16));
+				double mass(static_cast<double>(1.0e15));
 				// generate new position, velocity and acceleration
 				position = Vector<DIM>({ 2000.0 * ((double)i * 2.0 - 9.0) / 9.0,2000.0 * ((double)j * 2.0 - 9.0) / 9.0 ,2000.0 * ((double)k * 2.0 - 9.0) / 9.0 });
 				speed = Vector<DIM>({ 0,0,0 });
@@ -137,16 +137,16 @@ void mainLoop()
 
 int main()
 {
-	GLFWwindow* window = nullptr;
-	gl_init(&window);
+	//GLFWwindow* window = nullptr;
+	//gl_init(&window);
 
 	std::thread t0(mainLoop);
 
-	drawParticles(&window, &particles);
+	//drawParticles(&window, &particles);
 	//std::thread t1(&drawParticles<DIM>, &window, &particles);
 
 	// Close OpenGL window and terminate GLFW
-	glfwTerminate();
+	//glfwTerminate();
 
 	// TODO
 	// Stop the other thread gracefully...
