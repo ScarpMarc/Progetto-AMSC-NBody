@@ -8,6 +8,9 @@
 #include "Types.h"
 #include "Vector.h"
 
+// for debug
+#include <iostream>
+
 /// <summary>
 /// Represents the force interactions between all the particles and provides methods for calculating resulting forces that hide parallelism.
 /// </summary>
@@ -41,7 +44,7 @@ public:
 
 	void removeParticles(const unsigned int& add_amt);
 
-	// TODO capire qual è il modo più efficiente
+	// TODO capire qual � il modo pi� efficiente
 	/// <summary>
 	/// Updates all forces in the internal matrix. Internally, it queries particles and asks them to calculate their attraction/repulsion to all other particles.
 	/// </summary>

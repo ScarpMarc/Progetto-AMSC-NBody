@@ -89,4 +89,7 @@
   <ItemGroup>
     <Image Include="..\Resources\particle.DDS" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
 </Project>

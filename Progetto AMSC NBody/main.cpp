@@ -11,9 +11,6 @@
 
 #include <thread>
 
-#include "OpenGLFunctions.h"
-
-
 //#define DELTA_T 0.1f
 //#define MAX_TIME 10
 
@@ -47,10 +44,12 @@ void mainLoop()
 
 	// print particles
 
+	/*
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
 		(*(particles[i])).print();
 	}
+	*/
 
 
 	/*
@@ -74,9 +73,10 @@ void mainLoop()
 		}
 	}*/
 
+	
 	// UPDATE CYCLE
 
-	ForceMatrix<DIM> force_matrix = ForceMatrix<DIM>(total_particles);
+	ForceMatrix<DIM> force_matrix(total_particles);
 	force_matrix.updateForces(particles);
 	Vector<DIM> temp;
 	unsigned int time(0);
