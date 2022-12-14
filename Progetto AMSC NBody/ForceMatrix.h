@@ -104,7 +104,7 @@ private:
 	}
 	*/
 
-	inline void _setInteraction(const unsigned int& row, const unsigned int& col, const Vector<dim>& force)
+	/*inline*/ void _setInteraction(const unsigned int& row, const unsigned int& col, const Vector<dim>& force)
 	{
 #ifdef _DEBUG
 		if (row >= current_particle_amt || col >= current_particle_amt) throw "ERROR! Requested rows and/or cols out of range.";

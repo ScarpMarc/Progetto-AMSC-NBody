@@ -1,0 +1,9 @@
+1. build directories DONT GO in the git repository. Nathing that is produced by compilation goes in the repo!
+
+2. #pragma once is very nice, but not standard. Beware, some compilers may not support it. header guards are ugly, but standard.
+
+3. I could not go into much details, but the code looks nice.
+
+4. If a method is defined in-class, it is inlied by default. You do not need to add the inline specifier 
+(but it is not an error if you do)
+
