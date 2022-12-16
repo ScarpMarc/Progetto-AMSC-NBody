@@ -147,6 +147,7 @@ void mainLoop()
 	matrixComp_mean_duration /= max_ticks;
 
 	cout << "SIMULATION ENDED. Time taken: " << simduration.count() / 1000000 << " s" << endl;
+	total_sim_duration = simduration.count();
 }
 
 int main()
