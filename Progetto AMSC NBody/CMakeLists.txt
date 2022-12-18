@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(ProgettoAMSCNbody)
+project("Progetto AMSC Nbody")
 
 add_executable(main main.cpp)
 
