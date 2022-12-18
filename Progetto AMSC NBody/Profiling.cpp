@@ -31,4 +31,5 @@ void save_profiler_data_text_file(const std::filesystem::path& path_to_file)
 	file_out << "Position computation mean duration: " << std::setw(15) << posComp_mean_durations_per_tick << " ns" << endl;
 	file_out << "Matrix computation mean duration: " << std::setw(15) << matrixComp_mean_duration << " ns" << endl;
 #endif
+	file_out.close();
 }

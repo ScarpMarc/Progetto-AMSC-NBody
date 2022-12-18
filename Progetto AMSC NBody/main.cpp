@@ -25,8 +25,8 @@ extern long long int forceComp_mean_durations_per_tick = 0, posComp_mean_duratio
 #endif
 extern long long int total_sim_duration = 0;
 time_t programme_start;
-std::filesystem::path profiling_folder = "/";
-std::filesystem::path profiling_file_name = "Profiler_";
+std::string profiling_folder = "";
+std::string profiling_file_name = "Profiler_.txt";
 
 std::vector<std::unique_ptr<Particle<DIM>>> particles;
 
@@ -161,7 +161,7 @@ void mainLoop()
 	cout << "SIMULATION ENDED. Time taken: " << simduration.count() / 1000000 << " s" << endl;
 	total_sim_duration = simduration.count();
 
-	save_profiler_data_text_file(profiling_file_name.string() + profiling_file_name.string());
+	save_profiler_data_text_file(profiling_folder + profiling_file_name);
 }
 
 int main()

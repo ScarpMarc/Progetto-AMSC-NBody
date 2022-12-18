@@ -18,7 +18,7 @@ const unsigned int total_particles = 1000;
 /// <summary>
 /// Amount of ticks computed during the simulation
 /// </summary>
-const unsigned long int max_ticks = 1000;
+const unsigned long int max_ticks = 100;
 
 /// <summary>
 /// Amount of tick per simulation second.
