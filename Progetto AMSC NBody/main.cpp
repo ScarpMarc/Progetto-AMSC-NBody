@@ -18,6 +18,7 @@ using namespace std;
 int main()
 {
 	const unsigned int total_particles(3);
+	std::string filename = "particles.pt";
 
 	// vector of unique pointers to Particle objects
 	std::vector<std::unique_ptr<Particle<DIM>>> particles;
@@ -123,7 +124,35 @@ int main()
 				}
 			}
 		}
+	}	
+}
+
+void saveParticles(const std::vector<Particle<DIM>> & particles, const std::string & filename)
+{
+	std::ofstream outfile(filename, std::ios::out | std::ios::binary);
+	if (!outfile)
+	{
+		std::cout << "Cannot open file to write particles!" << std::endl;
+		return;
 	}
-	
-	
+	for (Particle particle : particles)
+	{
+		particle.saveToFile(outfile);
+	}
+	outfile.close();
+}
+
+void laodParticles(std::vector<Particle<DIM>> & particles, const std::string & filename)
+{
+	std::ifstream infile(filename, std::ios::in | std::ios::binary);
+	if (!infile)
+	{
+		std::cout << "Cannot open file to read particles!" << std::endl;
+		return;
+	}
+	for (Particle particle : particles)
+	{
+		particle.loadFromFile(infile);
+	}
+	infile.close();
 }

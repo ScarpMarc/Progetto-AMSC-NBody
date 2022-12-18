@@ -58,9 +58,9 @@ public:
 	/// <param name="resulting_force">Resulting force from the matrix</param>
 	void updateResultingForce(const Vector<dim>& resulting_force);
 
-	inline const void saveToFile(const std::ofstream outfile) { outfile.write(reinterpret_cast<char*>(this), sizeof(Particle)); }
+	inline const void saveToFile(const std::ofstream & outfile) { outfile.write(reinterpret_cast<char*>(this), sizeof(Particle)); }
 
-	inline void loadFromFile(const std::ifstream infile) { infile.read(reinterpret_cast<char*>(this), sizeof(Particle)); }
+	inline void loadFromFile(const std::ifstream & infile) { infile.read(reinterpret_cast<char*>(this), sizeof(Particle)); }
 
 	/// <summary>
 	/// Print particle information
