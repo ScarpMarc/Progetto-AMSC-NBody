@@ -7,6 +7,7 @@
 #include "Vector.h"
 #include "ForceMatrix.h"
 #include "Constants.h"
+#include "Profiling.h"
 
 #include <random>
 #include <numeric>
@@ -18,11 +19,22 @@
 
 using namespace std;
 
+#ifdef ADVANCED_PROFILING
+extern long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
+
+#endif
+extern long long int total_sim_duration = 0;
+time_t programme_start;
+std::filesystem::path profiling_folder = "/";
+std::filesystem::path profiling_file_name = "Profiler_";
+
 std::vector<std::unique_ptr<Particle<DIM>>> particles;
 
 const unsigned int testpnum = 10;
 void mainLoop()
 {
+	total_sim_duration = 0;
+
 	programme_start = time(0);
 	// vector of unique pointers to Particle objects
 	Vector<DIM> position, speed, acceleration;
@@ -148,20 +160,22 @@ void mainLoop()
 
 	cout << "SIMULATION ENDED. Time taken: " << simduration.count() / 1000000 << " s" << endl;
 	total_sim_duration = simduration.count();
+
+	save_profiler_data_text_file(profiling_file_name.string() + profiling_file_name.string());
 }
 
 int main()
 {
-	//GLFWwindow* window = nullptr;
-	//gl_init(&window);
+	GLFWwindow* window = nullptr;
+	gl_init(&window);
 
 	std::thread t0(mainLoop);
 
-	//drawParticles(&window, &particles);
+	drawParticles(&window, &particles);
 	//std::thread t1(&drawParticles<DIM>, &window, &particles);
 
 	// Close OpenGL window and terminate GLFW
-	//glfwTerminate();
+	glfwTerminate();
 
 	// TODO
 	// Stop the other thread gracefully...
