@@ -24,7 +24,6 @@ void save_profiler_data_text_file(const std::filesystem::path& path_to_file)
 	file_out << "Screen resolution: " << std::setw(5) << screenResX << "x" << std::setw(5) << screenResY << endl;
 	file_out << endl;
 	file_out << "--- TIMING AND THREADS INFO ---" << endl;
-	file_out << "Number of threads used: " << std::setw(15) << omp_get_num_threads() << endl;
 	file_out << "Total duration: " << std::setw(15) << total_sim_duration << endl;
 #ifdef ADVANCED_PROFILING
 	file_out << "Force computation mean duration: " << std::setw(15) << forceComp_mean_durations_per_tick << " ns" << endl;

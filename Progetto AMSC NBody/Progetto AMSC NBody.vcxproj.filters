@@ -24,18 +24,6 @@
     <ClCompile Include="main.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="Particle.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
-    <ClCompile Include="ForceMatrix.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
     <ClCompile Include="Controls.cpp">
       <Filter>File di origine\Graphics</Filter>
     </ClCompile>
@@ -45,15 +33,15 @@
     <ClCompile Include="shader.cpp">
       <Filter>File di origine\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Profiling.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="ForceMatrix.h">
-      <Filter>File di intestazione</Filter>
-    </ClInclude>
-    <ClInclude Include="Types.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="Vector.h">
@@ -76,6 +64,12 @@
     </ClInclude>
     <ClInclude Include="shader.h">
       <Filter>File di intestazione\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Profiling.h">
+      <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
