@@ -58,9 +58,9 @@ public:
 	/// <param name="resulting_force">Resulting force from the matrix</param>
 	void updateResultingForce(const Vector<dim>& resulting_force);
 
-	inline const void saveToFile(const std::ofstream & outfile) { outfile.write(reinterpret_cast<char*>(this), sizeof(Particle)); }
+	void Particle<dim>::saveToFile(const std::ofstream & outfile) const;
 
-	inline void loadFromFile(const std::ifstream & infile) { infile.read(reinterpret_cast<char*>(this), sizeof(Particle)); }
+	void Particle<dim>::loadFromFile(const std::ifstream & infile);
 
 	/// <summary>
 	/// Print particle information
@@ -195,4 +195,16 @@ Vector<dim> Particle<dim>::calcDistance(const Particle<dim>& other) const
 		displacement[i] = other.pos[i] - pos[i];
 	}
 	return displacement;
+}
+
+template<unsigned int dim>
+void Particle<dim>::saveToFile(const std::ofstream & outfile) const
+{
+	outfile.write(reinterpret_cast<char*>(this), sizeof(Particle<dim>));
+}
+
+template<unsigned int dim>
+void Particle<dim>::loadFromFile(const std::ifstream & infile)
+{
+	infile.read(reinterpret_cast<char*>(this), sizeof(Particle<dim>));
 }
