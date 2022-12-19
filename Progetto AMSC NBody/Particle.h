@@ -23,8 +23,8 @@ public:
 	/// <param name =
 	Particle(unsigned int id,
 		Vector<dim> position,
-		Vector <dim> speed,
-		Vector <dim> acceleration,
+		Vector<dim> speed,
+		Vector<dim> acceleration,
 		double mass) :
 		ID(id),
 		pos(position),
@@ -32,6 +32,11 @@ public:
 		accel(acceleration),
 		mass(mass)
 	{}
+
+	Particle(unsigned int id)
+	{
+		Particle(id, {}, {}, {}, 0.0);
+	}
 
 	/// <summary>
 	/// Calculates the force exerted by the other particle on this particle.
