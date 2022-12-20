@@ -89,15 +89,15 @@ void mainLoop()
 #endif
 		cout << "Iteration " << std::setw(6) << time << " (simulation seconds: " << std::setw(4) << (double)(time + 1) / ticks_per_second << ")";
 
-		chrono::steady_clock::time_point start = chrono::high_resolution_clock::now();
+		auto start = chrono::high_resolution_clock::now();
 
 #ifdef ADVANCED_PROFILING
-		chrono::steady_clock::time_point matrixComp_start = chrono::high_resolution_clock::now();
+		auto matrixComp_start = chrono::high_resolution_clock::now();
 #endif
 		//compute forces
 		force_matrix.updateForces(particles);
 #ifdef ADVANCED_PROFILING
-		chrono::steady_clock::time_point matrixComp_end = chrono::high_resolution_clock::now();
+		auto matrixComp_end = chrono::high_resolution_clock::now();
 		matrixComp_duration_this_tick = chrono::duration_cast<chrono::microseconds>(matrixComp_end - matrixComp_start);
 		matrixComp_mean_duration += matrixComp_duration_this_tick.count();
 #endif
@@ -106,14 +106,14 @@ void mainLoop()
 		for (int i = 0; i < total_particles; i++)
 		{
 #ifdef ADVANCED_PROFILING
-			chrono::steady_clock::time_point forceComp_start = chrono::high_resolution_clock::now();
+			auto forceComp_start = chrono::high_resolution_clock::now();
 #endif
 			// updating forces
 			temp = force_matrix.getTotalForceOnParticle(i);
 			particles[i]->updateResultingForce(temp);
 
 #ifdef ADVANCED_PROFILING
-			chrono::steady_clock::time_point forceComp_end = chrono::high_resolution_clock::now();
+			auto forceComp_end = chrono::high_resolution_clock::now();
 			forceComp_durations_this_tick[i] = chrono::duration_cast<chrono::microseconds>(forceComp_end - forceComp_start).count();
 #endif
 		}
@@ -122,13 +122,13 @@ void mainLoop()
 		for (int i = 0; i < total_particles; i++)
 		{
 #ifdef ADVANCED_PROFILING
-			chrono::steady_clock::time_point posComp_start = chrono::high_resolution_clock::now();
+			auto posComp_start = chrono::high_resolution_clock::now();
 #endif
 			// updating positions
 			particles[i]->calcNewPosition(1);
 
 #ifdef ADVANCED_PROFILING
-			chrono::steady_clock::time_point posComp_end = chrono::high_resolution_clock::now();
+			auto posComp_end = chrono::high_resolution_clock::now();
 			posComp_durations_this_tick[i] = chrono::duration_cast<chrono::microseconds>(posComp_end - posComp_start).count();
 #endif
 		}
