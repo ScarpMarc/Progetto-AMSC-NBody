@@ -138,6 +138,8 @@ void saveParticles(const std::vector<Particle<DIM>> & particles, const std::stri
 		std::cout << "Cannot open file to write particles!" << std::endl;
 		return;
 	}
+	outfile << DIM;
+	outfile << particles.size();
 	for (Particle particle : particles)
 	{
 		particle.saveToFile(outfile);
@@ -153,9 +155,21 @@ void laodParticles(std::vector<Particle<DIM>> & particles, const std::string & f
 		std::cout << "Cannot open file to read particles!" << std::endl;
 		return;
 	}
-	for (Particle particle : particles)
+
+	unsigned int dim;
+	infile.read(reinterpret_cast<char*>(&dim), sizeof(unsigned int));
+	if (dim != DIM)
 	{
+		std::cout << "File has a different particle DIM.\nCannot load file information!" << std::endl;
+		return;
+	}
+	
+	infile.read(reinterpret_cast<char*>(&dim), sizeof(unsigned int));
+	for (int i = 0; i < dim; i++)
+	{
+		Particle<DIM> particle(i);
 		particle.loadFromFile(infile);
+		particles.emplace_back(particle);
 	}
 	infile.close();
 }
