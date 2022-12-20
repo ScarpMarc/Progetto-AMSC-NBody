@@ -6,6 +6,7 @@
 #include "Vector.h"
 #include "ForceMatrix.h"
 #include "Constants.h"
+#include "simulation_functions.h"
 
 #include <thread>
 
@@ -21,7 +22,7 @@ int main()
 	std::string filename = "particles.pt";
 
 	// vector of unique pointers to Particle objects
-	std::vector<std::unique_ptr<Particle<DIM>>> particles;
+	std::vector<Particle<DIM>> particles;
 	Vector<DIM> position, speed, acceleration;
 
 	for (unsigned int i = 0; i < total_particles; i++)
@@ -36,7 +37,7 @@ int main()
 		
 
 		// generate particle
-		particles.push_back(std::make_unique<Particle<DIM>>(i, position, speed, acceleration, mass));
+		particles.emplace_back(i, position, speed, acceleration, mass);
 	}
 
 	// print particles
@@ -73,16 +74,17 @@ int main()
 	
 	// UPDATE CYCLE
 
-	ForceMatrix<DIM> force_matrix(total_particles);
-	force_matrix.updateForces(particles);
+	//ForceMatrix<DIM> force_matrix(total_particles);
+	//force_matrix.updateForces(particles);
 	Vector<DIM> temp;
 	unsigned int time(0);
 
 	// UPDATE SECTION
 	for (time = 0; time < max_ticks; ++time)
 	{
+		do_simulation_step(particles, 1);
 		//compute forces
-		force_matrix.updateForces(particles);
+		/*force_matrix.updateForces(particles);
 		#pragma omp parallel for
 		for (unsigned int i = 0; i < total_particles; i++)
 		{
@@ -96,31 +98,32 @@ int main()
 		{
 			// updating positions
 			particles[i]->calcNewPosition(1);
-		}
+		}*/
 
-		if(time == 0 || time == max_ticks - 1){
+		if(time == 0 || time == max_ticks - 1)
+		{
 		
 			cout << "----------------------------------------------------------------\nCycle " 
 				<< time << " (Time " << time/ticks_per_second <<" seconds)\n" << endl;
 			for (unsigned int i = 0; i < total_particles; i++)
 			{
-				std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
+				std::cout << "Particle #:" << particles[i].get_particle_id() << std::endl;
 				std::cout << "In position" << std::endl;
 				for (unsigned int j = 0; j < DIM; j++)
 				{
-					std::cout << particles[i]->get_position()[j] << std::endl;
+					std::cout << particles[i].get_position()[j] << std::endl;
 				}
 
 				std::cout << "With velocity" << std::endl;
 				for (unsigned int j = 0; j < DIM; j++)
 				{
-					std::cout << particles[i]->get_speed()[j] << std::endl;
+					std::cout << particles[i].get_speed()[j] << std::endl;
 				}
 
 				std::cout << "and acceleration" << std::endl;
 				for (unsigned int j = 0; j < DIM; j++)
 				{
-					std::cout << particles[i]->get_acc()[j] << std::endl;
+					std::cout << particles[i].get_acc()[j] << std::endl;
 				}
 			}
 		}

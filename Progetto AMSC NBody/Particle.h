@@ -50,7 +50,7 @@ public:
 	/// </summary>
 	/// <param name="delta_time">Delta time, expressed in unit time</param>
 	/// <returns>The new position</returns>
-	const Vector<dim>& calcNewPosition(const unsigned int & delta_ticks);
+	const Vector<dim>& calcNewPosition(const unsigned int& delta_ticks);
 
 	/// <summary>
 	/// Updates this particle's force from the global matrix.
@@ -58,14 +58,14 @@ public:
 	/// <param name="resulting_force">Resulting force from the matrix</param>
 	void updateResultingForce(const Vector<dim>& resulting_force);
 
-	void Particle<dim>::saveToFile(const std::ofstream & outfile) const;
+	void saveToFile(const std::ofstream& outfile) const;
 
-	void Particle<dim>::loadFromFile(const std::ifstream & infile);
+	void loadFromFile(const std::ifstream& infile);
 
 	/// <summary>
 	/// Print particle information
 	/// </summary>
-	void print() const ;
+	void print() const;
 
 	/// <summary>
 	/// Gets particle mass
@@ -93,8 +93,8 @@ public:
 	inline const unsigned int& get_particle_id() const { return ID; }
 
 private:
-	void _updateSpeed(const unsigned int & delta_ticks);
-	void _updatePos(const unsigned int & delta_ticks);
+	void _updateSpeed(const unsigned int& delta_ticks);
+	void _updatePos(const unsigned int& delta_ticks);
 
 	unsigned int ID; // particle id number
 
@@ -144,7 +144,7 @@ void Particle<dim>::print() const
 }
 
 template<unsigned int dim>
-const Vector<dim>& Particle<dim>::calcNewPosition(const unsigned int & delta_ticks)
+const Vector<dim>& Particle<dim>::calcNewPosition(const unsigned int& delta_ticks)
 {
 	_updateSpeed(delta_ticks);
 	_updatePos(delta_ticks);
@@ -161,7 +161,7 @@ void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
 }
 
 template<unsigned int dim>
-void Particle<dim>::_updateSpeed(const unsigned int & delta_ticks)
+void Particle<dim>::_updateSpeed(const unsigned int& delta_ticks)
 {
 	for (int i = 0; i < dim; ++i)
 	{
@@ -170,7 +170,7 @@ void Particle<dim>::_updateSpeed(const unsigned int & delta_ticks)
 }
 
 template<unsigned int dim>
-void Particle<dim>::_updatePos(const unsigned int & delta_ticks)
+void Particle<dim>::_updatePos(const unsigned int& delta_ticks)
 {
 	for (int i = 0; i < dim; ++i)
 	{
@@ -198,13 +198,13 @@ Vector<dim> Particle<dim>::calcDistance(const Particle<dim>& other) const
 }
 
 template<unsigned int dim>
-void Particle<dim>::saveToFile(const std::ofstream & outfile) const
+void Particle<dim>::saveToFile(const std::ofstream& outfile) const
 {
-	outfile.write(reinterpret_cast<char*>(this), sizeof(Particle<dim>));
+	outfile << pos << speed << accel << mass;
 }
 
 template<unsigned int dim>
-void Particle<dim>::loadFromFile(const std::ifstream & infile)
+void Particle<dim>::loadFromFile(const std::ifstream& infile)
 {
-	infile.read(reinterpret_cast<char*>(this), sizeof(Particle<dim>));
+	infile >> pos >> speed >> accel >> mass;
 }

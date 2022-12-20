@@ -2,6 +2,8 @@
 #include <array>
 #include <iostream>
 #include <cmath>
+#include <istream>
+#include <ostream>
 
 template <unsigned int dim>
 class Vector
@@ -182,6 +184,25 @@ public:
 		}
 
 		return Vector<dim>(new_components);
+	}
+
+	friend std::ostream& operator<<(std::ostream& str, const Vector<dim>& vec)
+	{
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			str << vec[i];
+		}
+		return str;
+	}
+
+	friend std::istream& operator>>(std::istream& str, Vector<dim>& vec)
+	{
+		// read obj from stream
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			str >> vec[i];
+		}
+		return str;
 	}
 
 	/// <summary>
