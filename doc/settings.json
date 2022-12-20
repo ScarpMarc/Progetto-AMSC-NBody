@@ -4,5 +4,7 @@
     "ticks_per_second":"10",
     "screen_refresh_millis":"100",
     "screenResX":"1024",
-    "screenResY":"1024"
+    "screenResY":"1024",
+    "save_status_interval":"10",
+    "total_particles":"5"
 }

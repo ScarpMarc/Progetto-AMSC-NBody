@@ -7,6 +7,7 @@
 #include "ForceMatrix.h"
 #include "Constants.h"
 #include "simulation_functions.h"
+#include "json_parser.hpp"
 
 #include <thread>
 
@@ -21,8 +22,10 @@ void laodParticles(std::vector<Particle<DIM>>&, const std::string&);
 
 int main()
 {
-	const unsigned int total_particles(3);
 	std::string filename = "particles.pt";
+
+	JsonParser parser("");
+    parser.parse();
 
 	// vector of Particle objects
 	std::vector<Particle<DIM>> particles;

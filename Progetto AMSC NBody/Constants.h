@@ -9,6 +9,11 @@
 /// </summary>
 const unsigned int DIM = 3;
 
+/// <summary>
+/// Particle dimension (2D, 3D)
+/// </summary>
+unsigned int total_particles = 3;
+
 //
 // TIMING
 //

@@ -13,16 +13,15 @@ class JsonParser
 
     public: 
     // Constructor
-    JsonParser(){
-        parse();
-    }
-    JsonParser(std::string _file_name):filename(_file_name)
+
+    JsonParser(std::string _file_name):
+    filename(_file_name)
     {}
 
     void parse()
     {
         if (filename.empty())
-            filename = "./settings.json";
+            filename = "../../doc/settings.json";
         std::string s;
         s = _json_string_from_file(filename);
         _parse_json(s);
@@ -110,6 +109,16 @@ class JsonParser
             {
                 screenResY = stoul(value);
                 //std::cout << screenResY << std::endl;
+            }
+            if(key.find("save_status_interval") != std::string::npos)
+            {
+                save_status_interval = stoul(value);
+                //std::cout << save_status_inteval << std::endl;
+            }
+            if(key.find("total_particles") != std::string::npos)
+            {
+                total_particles = stoul(value);
+                //std::cout << total_particles << std::endl;
             }
 
             // Store the key-value pair in the map

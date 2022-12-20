@@ -4,5 +4,6 @@
 int main(int argc, char**argv)
 {
     std::string empty;
-    JsonParser();
+    JsonParser parser(empty);
+    parser.parse();
 }
