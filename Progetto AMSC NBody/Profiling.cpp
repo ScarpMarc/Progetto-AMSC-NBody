@@ -1,5 +1,4 @@
 #include "Profiling.h"
-#include "Globals.h"
 #include "Constants.h"
 #include <omp.h>
 

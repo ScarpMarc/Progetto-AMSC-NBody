@@ -1,5 +1,8 @@
 #include "OpenGLFunctions.h"
 #include "shader.h"
+#include <cstring>
+#include <istream>
+#include <string>
 
 int gl_init(GLFWwindow** window)
 {
@@ -69,27 +72,37 @@ extern "C"
 	{
 		unsigned char header[124];
 
-		FILE* fp;
+		//FILE* fp;
+		std::string filename(imagepath);
 
 		/* try to open the file */
-		fopen_s(&fp, imagepath, "rb");
-		if (fp == NULL)
+		std::basic_ifstream<unsigned char> input_file(filename);
+		//fopen_s(&fp, imagepath, "rb");
+		if (!input_file.is_open())
 		{
 			printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar();
 			return 0;
 		}
 
 		/* verify the type of file */
-		char filecode[4];
-		fread(filecode, 1, 4, fp);
+		unsigned char filecode_temp[4];
+		input_file.read(filecode_temp, 4);
+		char filecode[4] = {0,0,0,0}; // Crude workaround to basic ifstream type
+		for(int i = 0; i < 4; ++i)
+		{
+			filecode[i] |= filecode_temp[i];
+		}
+		//fread(filecode, 1, 4, fp);
 		if (strncmp(filecode, "DDS ", 4) != 0) 
 		{
-			fclose(fp);
+			//fclose(fp);
+			input_file.close();
 			return 0;
 		}
 
 		/* get the surface desc */
-		fread(&header, 124, 1, fp);
+		//fread(&header, 124, 1, fp);
+		input_file.read(header, 124);
 
 		unsigned int height = *(unsigned int*)&(header[8]);
 		unsigned int width = *(unsigned int*)&(header[12]);
@@ -103,9 +116,10 @@ extern "C"
 		/* how big is it going to be including all mipmaps? */
 		bufsize = mipMapCount > 1 ? linearSize * 2 : linearSize;
 		buffer = (unsigned char*)malloc(bufsize * sizeof(unsigned char));
-		fread(buffer, 1, bufsize, fp);
+		//fread(buffer, 1, bufsize, fp);
+		input_file.read(buffer, bufsize);
 		/* close the file pointer */
-		fclose(fp);
+		input_file.close();
 
 		unsigned int components = (fourCC == FOURCC_DXT1) ? 3 : 4;
 		unsigned int format;
