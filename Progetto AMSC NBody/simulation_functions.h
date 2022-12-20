@@ -23,4 +23,5 @@ int do_simulation_step(std::vector<Particle<dim>>& particles, const unsigned int
 	{
 		particles[i].calcNewPosition(ticks_step);
 	}
+	return 0;
 }
