@@ -24,6 +24,12 @@ unsigned long int max_ticks = 10000;
 /// </summary>
 double ticks_per_second = 10;
 
+/// <summary>
+/// Amount of steps without saving particles status.
+/// Note: this has no connection to real-time seconds, but is only simulation-related.
+/// </summary>
+unsigned int save_status_interval = 10;
+
 //
 // GRAPHICS
 //

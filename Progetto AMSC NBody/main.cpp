@@ -15,13 +15,16 @@
 
 using namespace std;
 
+void saveParticles(const std::vector<Particle<DIM>>&, const std::string&);
+
+void laodParticles(std::vector<Particle<DIM>>&, const std::string&);
 
 int main()
 {
 	const unsigned int total_particles(3);
 	std::string filename = "particles.pt";
 
-	// vector of unique pointers to Particle objects
+	// vector of Particle objects
 	std::vector<Particle<DIM>> particles;
 	Vector<DIM> position, speed, acceleration;
 
@@ -39,38 +42,6 @@ int main()
 		// generate particle
 		particles.emplace_back(i, position, speed, acceleration, mass);
 	}
-
-	// print particles
-
-	/*
-	for (unsigned int i = 0; i < total_particles; i++)
-	{
-		(*(particles[i])).print();
-	}
-	*/
-
-/*
-		std::cout << "Particle #:" << particles[i]->get_particle_id() << std::endl;
-		std::cout << "In position" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[i] ->get_position()[j] << std::endl;
-		}
-
-		std::cout << "With velocity" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[i] ->get_speed()[j] << std::endl;
-		}
-
-		std::cout << "and acceleration" << std::endl;
-		for (unsigned int j = 0; j < DIM; j++)
-		{
-			std::cout << particles[i] ->get_acc()[j] << std::endl;
-		}
-	}
-*/
-
 	
 	// UPDATE CYCLE
 
@@ -126,6 +97,11 @@ int main()
 					std::cout << particles[i].get_acc()[j] << std::endl;
 				}
 			}
+		}
+
+		if (!(time % save_status_interval))
+		{
+			saveParticles(particles, filename);
 		}
 	}	
 }
