@@ -63,9 +63,9 @@ public:
 	/// <param name="resulting_force">Resulting force from the matrix</param>
 	void updateResultingForce(const Vector<dim>& resulting_force);
 
-	void saveToFile(const std::ofstream& outfile) const;
+	void saveToFile(std::ofstream& outfile) const;
 
-	void loadFromFile(const std::ifstream& infile);
+	void loadFromFile(std::ifstream& infile);
 
 	/// <summary>
 	/// Print particle information
@@ -106,7 +106,7 @@ private:
 	Vector<dim> pos;
 	Vector<dim> speed;
 	Vector<dim> accel;
-	const double mass;
+	double mass;
 
 	// TODO Set value
 	// Mass constant k
@@ -203,13 +203,13 @@ Vector<dim> Particle<dim>::calcDistance(const Particle<dim>& other) const
 }
 
 template<unsigned int dim>
-void Particle<dim>::saveToFile(const std::ofstream& outfile) const
+void Particle<dim>::saveToFile(std::ofstream& outfile) const
 {
 	outfile << pos << speed << accel << mass;
 }
 
 template<unsigned int dim>
-void Particle<dim>::loadFromFile(const std::ifstream& infile)
+void Particle<dim>::loadFromFile(std::ifstream& infile)
 {
 	infile >> pos >> speed >> accel >> mass;
 }
