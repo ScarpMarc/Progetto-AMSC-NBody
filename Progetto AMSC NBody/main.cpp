@@ -2,6 +2,8 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <cstdlib>
+#include <ctime>
 #include "Particle.h"
 #include "Vector.h"
 #include "ForceMatrix.h"
@@ -27,6 +29,8 @@ int main()
 	JsonParser parser("");
     parser.parse();
 
+	std::srand(std::time(NULL));
+
 	// vector of Particle objects
 	std::vector<Particle<DIM>> particles;
 	Vector<DIM> position, speed, acceleration;
@@ -34,9 +38,9 @@ int main()
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
 		// generate mass
-		double mass(static_cast<double>((/*i+*/1)*3*10e3));
+		double mass(static_cast<double>((std::rand() % 9000) + 1000));
 		// generate new position, velocity and acceleration
-		position = Vector<DIM>({ 0.0 + static_cast<double>(i),0.0 + static_cast<double>(i),0.0 + static_cast<double>(i) });
+		position = Vector<DIM>({ static_cast<double>(std::rand() % 10000), static_cast<double>(std::rand() % 10000), static_cast<double>(std::rand() % 10000) });
 		//position = Vector<DIM>({ (i==1)*1.0 + (i == 2) * 0.7, (i==2)*0.5, 0.0});
 		speed = Vector<DIM>({ 0.0,0.0,0.0 });
 		acceleration = Vector<DIM>({ 0.0,0.0,0.0 });
