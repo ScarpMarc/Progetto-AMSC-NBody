@@ -32,7 +32,7 @@ using namespace std;
 <<<<<<< HEAD
 void saveParticles(const std::vector<Particle<DIM>>&, const std::string&);
 
-void laodParticles(std::vector<Particle<DIM>>&, const std::string&);
+void loadParticles(std::vector<Particle<DIM>>&, const std::string&);
 =======
 #ifdef ADVANCED_PROFILING
 extern long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
@@ -273,7 +273,7 @@ int main()
 	outfile.close();
 }
 
-void laodParticles(std::vector<Particle<DIM>> & particles, const std::string & filename)
+void loadParticles(std::vector<Particle<DIM>> & particles, const std::string & filename)
 {
 	std::ifstream infile(filename, std::ios::in | std::ios::binary);
 	if (!infile)

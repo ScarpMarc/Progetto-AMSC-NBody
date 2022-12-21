@@ -9,7 +9,7 @@
 /// </summary>
 const unsigned int DIM = 3;
 
-const unsigned int total_particles = 1000;
+extern unsigned int total_particles;
 
 //
 // TIMING
@@ -18,19 +18,19 @@ const unsigned int total_particles = 1000;
 /// <summary>
 /// Amount of ticks computed during the simulation
 /// </summary>
-const unsigned long int max_ticks = 100;
+extern unsigned long int max_ticks;
 
 /// <summary>
 /// Amount of tick per simulation second.
 /// Note: this has no connection to real-time seconds, but is only simulation-related.
 /// </summary>
-double ticks_per_second = 10;
+extern double ticks_per_second;
 
 /// <summary>
 /// Amount of steps without saving particles status.
 /// Note: this has no connection to real-time seconds, but is only simulation-related.
 /// </summary>
-unsigned int save_status_interval = 10;
+extern unsigned int save_status_interval;
 
 //
 // GRAPHICS
@@ -39,13 +39,13 @@ unsigned int save_status_interval = 10;
 /// <summary>
 /// Amount of real-time milliseconds that the drawing routine pauses for after each drawing cycle.
 /// </summary>
-const unsigned int screen_refresh_millis = 500;
+extern unsigned int screen_refresh_millis;
 
 /// <summary>
 /// Screen resolution in the horizontal direction
 /// </summary>
-const unsigned int screenResX = 2048;
+extern unsigned int screenResX;
 /// <summary>
 /// Screen resolution in the vertical direction
 /// </summary>
-const unsigned int screenResY = 2048;
+extern unsigned int screenResY;

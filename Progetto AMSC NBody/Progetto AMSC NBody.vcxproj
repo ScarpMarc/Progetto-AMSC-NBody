@@ -148,7 +148,6 @@
   <ItemGroup>
     <ClCompile Include="Controls.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="main_old.cpp" />
     <ClCompile Include="OpenGLFunctions.cpp" />
     <ClCompile Include="Profiling.cpp" />
     <ClCompile Include="shader.cpp" />
@@ -158,6 +157,7 @@
     <ClInclude Include="Controls.h" />
     <ClInclude Include="ForceMatrix.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="json_parser.hpp" />
     <ClInclude Include="OpenGLFunctions.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="Profiling.h" />

@@ -212,4 +212,3 @@ void Particle<dim>::loadFromFile(std::ifstream& infile)
 {
 	infile >> pos >> speed >> accel >> mass;
 }
-*/
