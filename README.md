@@ -7,7 +7,7 @@ The user must select at one of the two
 - `-load filename` to load particles from a file
 
 ## Required files
-`vertexshader.vertexshader`, `fragmentshader.fragmentshader` and `particle.dds` must be in the same directory as the executable
+`vertexShader.vertexshader`, `fragmentShader.fragmentshader` and `particle.dds` must be in the same directory as the executable
 Optionally, the executable must have `settings.json` in the same directory if the user wants a JSON generation.
 
 ## Controls
