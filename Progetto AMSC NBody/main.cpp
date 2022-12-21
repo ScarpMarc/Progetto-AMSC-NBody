@@ -43,6 +43,7 @@ unsigned int save_status_interval = 10;
 unsigned int screen_refresh_millis = 200;
 unsigned int screenResX = 2048;
 unsigned int screenResY = 2048;
+bool use_graphics = true;
 
 std::string save_filename = "particles_output.pt";
 std::string load_filename;
