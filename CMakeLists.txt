@@ -16,17 +16,22 @@ add_subdirectory ("Progetto AMSC NBody")
 
 #GLM
 add_subdirectory("glm")
-target_link_libraries(main glm::glm)
+target_link_libraries(main PUBLIC glm::glm)
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(main PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 #GLFW
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory("glfw")
-target_link_libraries(main glfw)
+target_link_libraries(main PUBLIC glfw)
 
 #GLEW
 add_subdirectory("glew/build/cmake")
-target_link_libraries(main glew)
+target_link_libraries(main PUBLIC glew)
 
-target_link_libraries(main OpenGL::GL)
+target_link_libraries(main PUBLIC OpenGL::GL)
