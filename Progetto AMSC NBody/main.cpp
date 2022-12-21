@@ -24,7 +24,7 @@
 using namespace std;
 
 long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
-void saveParticles(const std::vector<Particle<DIM>>&, const std::string&);
+void saveParticles(const std::vector<Particle<DIM>> &, const std::string &);
 
 extern long long int total_sim_duration = 0;
 time_t programme_start;
@@ -34,7 +34,7 @@ std::string profiling_file_name = "Profiler_.txt";
 // vector of Particle objects
 std::vector<Particle<DIM>> particles;
 
-void loadParticles(std::vector<Particle<DIM>>&, const std::string&);
+void loadParticles(std::vector<Particle<DIM>> &, const std::string &);
 
 unsigned int total_particles = 1000;
 unsigned long int max_ticks = 100;
@@ -43,6 +43,7 @@ unsigned int save_status_interval = 10;
 unsigned int screen_refresh_millis = 200;
 unsigned int screenResX = 2048;
 unsigned int screenResY = 2048;
+bool graphics = true;
 
 std::string save_filename = "particles_output.pt";
 std::string load_filename;
@@ -57,7 +58,7 @@ int mainLoop()
 	{
 		loadParticles(particles, load_filename);
 	}
-	else 
+	else
 	{
 		JsonParser parser("");
 		parser.parse();
@@ -70,13 +71,12 @@ int mainLoop()
 		{
 			Vector<DIM> position, speed, acceleration;
 			// generate mass
-			double mass(static_cast<double>((std::rand() % 10000)*1.0e7 + 1.0e7));
+			double mass(static_cast<double>((std::rand() % 10000) * 1.0e7 + 1.0e7));
 			// generate new position, velocity and acceleration
-			position = Vector<DIM>({ static_cast<double>(std::rand() % 4000)-2000.0, static_cast<double>(std::rand() % 4000)-2000.0, static_cast<double>(std::rand() % 4000)-2000.0 });
-			//position = Vector<DIM>({ (i==1)*1.0 + (i == 2) * 0.7, (i==2)*0.5, 0.0});
-			speed = Vector<DIM>({ 0.0,0.0,0.0 });
-			acceleration = Vector<DIM>({ 0.0,0.0,0.0 });
-
+			position = Vector<DIM>({static_cast<double>(std::rand() % 4000) - 2000.0, static_cast<double>(std::rand() % 4000) - 2000.0, static_cast<double>(std::rand() % 4000) - 2000.0});
+			// position = Vector<DIM>({ (i==1)*1.0 + (i == 2) * 0.7, (i==2)*0.5, 0.0});
+			speed = Vector<DIM>({0.0, 0.0, 0.0});
+			acceleration = Vector<DIM>({0.0, 0.0, 0.0});
 
 			// generate particle
 			particles.emplace_back(i, position, speed, acceleration, mass);
@@ -98,7 +98,7 @@ int mainLoop()
 
 		do_simulation_step(particles, 1);
 
-		//compute forces
+		// compute forces
 		auto matrixComp_end = chrono::high_resolution_clock::now();
 		matrixComp_duration_this_tick = chrono::duration_cast<chrono::microseconds>(matrixComp_end - matrixComp_start);
 		matrixComp_mean_duration += matrixComp_duration_this_tick.count();
@@ -137,7 +137,6 @@ int mainLoop()
 			}
 		}*/
 
-
 	} // For time
 	// Calculate mean time
 	matrixComp_mean_duration /= max_ticks;
@@ -154,7 +153,7 @@ int mainLoop()
 	return 0;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	/*if (argc != 3 && argc != 2)
 	{
@@ -177,21 +176,25 @@ int main(int argc, char** argv)
 		return 2;
 	}*/
 
-	GLFWwindow* window = nullptr;
+	GLFWwindow *window = nullptr;
 	gl_init(&window);
 
 	std::thread t0(mainLoop);
 
-	drawParticles(&window, &particles);
-	//std::thread t1(&drawParticles<DIM>, &window, &particles);
+	if (graphics)
+	{
 
-	glfwTerminate();
+		drawParticles(&window, &particles);
+		// std::thread t1(&drawParticles<DIM>, &window, &particles);
+
+		glfwTerminate();
+	}
 	// TODO
 	// Stop the other thread gracefully...
 	t0.join();
 }
 
-void saveParticles(const std::vector<Particle<DIM>>& particles, const std::string& filename)
+void saveParticles(const std::vector<Particle<DIM>> &particles, const std::string &filename)
 {
 	std::ofstream outfile(filename, std::ios::out | std::ios::binary);
 	if (!outfile)
@@ -200,10 +203,10 @@ void saveParticles(const std::vector<Particle<DIM>>& particles, const std::strin
 		return;
 	}
 
-	outfile.write(reinterpret_cast<const char*>(&DIM), sizeof(DIM));
-	outfile.write(reinterpret_cast<char*>(&total_particles), sizeof(total_particles));
+	outfile.write(reinterpret_cast<const char *>(&DIM), sizeof(DIM));
+	outfile.write(reinterpret_cast<char *>(&total_particles), sizeof(total_particles));
 
-	for (const Particle<DIM>& particle : particles)
+	for (const Particle<DIM> &particle : particles)
 	{
 		particle.saveToFile(outfile);
 	}
@@ -211,8 +214,7 @@ void saveParticles(const std::vector<Particle<DIM>>& particles, const std::strin
 }
 // Close OpenGL window and terminate GLFW
 
-
-void loadParticles(std::vector<Particle<DIM>>& particles, const std::string& filename)
+void loadParticles(std::vector<Particle<DIM>> &particles, const std::string &filename)
 {
 	std::ifstream infile(filename, std::ios::in | std::ios::binary);
 	if (!infile)
@@ -222,14 +224,14 @@ void loadParticles(std::vector<Particle<DIM>>& particles, const std::string& fil
 	}
 
 	unsigned int dim;
-	infile.read(reinterpret_cast<char*>(&dim), sizeof(unsigned int));
+	infile.read(reinterpret_cast<char *>(&dim), sizeof(unsigned int));
 	if (dim != DIM)
 	{
 		std::cout << "File has a different particle DIM.\nCannot load file information!" << std::endl;
 		return;
 	}
 
-	infile.read(reinterpret_cast<char*>(&total_particles), sizeof(unsigned int));
+	infile.read(reinterpret_cast<char *>(&total_particles), sizeof(unsigned int));
 	for (int i = 0; i < total_particles; i++)
 	{
 		Particle<DIM> particle(i);
