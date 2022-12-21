@@ -21,7 +21,7 @@ class JsonParser
     void parse()
     {
         if (filename.empty())
-            filename = "../../doc/settings.json";
+            filename = "settings.json";
         std::string s;
         s = _json_string_from_file(filename);
         _parse_json(s);
@@ -33,7 +33,13 @@ class JsonParser
     {
         std::ifstream myfile(filepath);
         std::ostringstream temp;
-        temp << myfile.rdbuf();
+        while (!myfile.eof())
+        {
+            std::string _temp;
+            getline(myfile, _temp);
+            temp << _temp;
+        }
+        //temp << myfile.rdbuf();
         std::string s = temp.str();
         //std::cout << filepath << std::endl;
         //std::cout << s << std::endl;
@@ -69,7 +75,7 @@ class JsonParser
             return values;
             }
             std::string key = object_str.substr(key_start, key_end - key_start);
-            std::cout << key << std::endl;
+            //std::cout << key << std::endl;
 
             // Find the start and end of the value
             size_t value_start = object_str.find('"', key_end + 1);

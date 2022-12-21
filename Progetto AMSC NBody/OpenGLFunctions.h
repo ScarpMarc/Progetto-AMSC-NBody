@@ -30,7 +30,7 @@ extern "C"
 }
 
 template <unsigned int dim>
-void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim>>>* particles)
+void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 {
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -47,7 +47,7 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 	// fragment shader
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 
-	GLuint Texture = loadDDS("../Resources/particle.DDS");
+	GLuint Texture = loadDDS("particle.DDS");
 
 	static GLfloat* g_particule_position_size_data = new GLfloat[particles->size() * 4];
 	static GLubyte* g_particule_color_data = new GLubyte[particles->size() * 4];
@@ -96,7 +96,7 @@ void drawParticles(GLFWwindow** window, std::vector<std::unique_ptr<Particle<dim
 		int ParticlesCount = 0;
 		for (int i = 0; i < particles->size(); i++)
 		{
-			Particle<dim>& p = *(particles->at(i)); // shortcut
+			Particle<dim>& p = particles->at(i); // shortcut
 
 			//p.cameradistance = glm::length2(p.pos - CameraPosition);
 

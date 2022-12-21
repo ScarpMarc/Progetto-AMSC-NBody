@@ -23,61 +23,66 @@
 
 using namespace std;
 
-#ifdef ADVANCED_PROFILING
-extern long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
+long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
 void saveParticles(const std::vector<Particle<DIM>>&, const std::string&);
 
-#endif
 extern long long int total_sim_duration = 0;
 time_t programme_start;
 std::string profiling_folder = "";
 std::string profiling_file_name = "Profiler_.txt";
 
-std::vector<std::unique_ptr<Particle<DIM>>> particles;
+// vector of Particle objects
+std::vector<Particle<DIM>> particles;
 
-const unsigned int testpnum = 10;
-void mainLoop()
-void laodParticles(std::vector<Particle<DIM>>&, const std::string&);
+void loadParticles(std::vector<Particle<DIM>>&, const std::string&);
 
-int main()
+unsigned int total_particles = 1000;
+unsigned long int max_ticks = 100;
+double ticks_per_second = 10.0;
+unsigned int save_status_interval = 10;
+unsigned int screen_refresh_millis = 200;
+unsigned int screenResX = 2048;
+unsigned int screenResY = 2048;
+
+std::string save_filename = "particles_output.pt";
+std::string load_filename;
+
+bool load_particles_from_file = false;
+
+int mainLoop()
 {
-	std::string filename = "particles.pt";
 	total_sim_duration = 0;
 
-	JsonParser parser("");
-    parser.parse();
-
-	std::srand(std::time(NULL));
-
-	// vector of Particle objects
-	std::vector<Particle<DIM>> particles;
-	programme_start = time(0);
-	// vector of unique pointers to Particle objects
-	Vector<DIM> position, speed, acceleration;
-
-	std::random_device rd; // obtain a random number from hardware
-	std::mt19937 gen(rd()); // seed the generator
-	std::uniform_int_distribution<> distr(-2000, 2000); // define the range
-
-	for (int i = 0; i < testpnum; i++)
+	if (load_particles_from_file)
 	{
-		// generate mass
-		double mass(static_cast<double>((std::rand() % 9000) + 1000));
-		// generate new position, velocity and acceleration
-		position = Vector<DIM>({ static_cast<double>(std::rand() % 10000), static_cast<double>(std::rand() % 10000), static_cast<double>(std::rand() % 10000) });
-		//position = Vector<DIM>({ (i==1)*1.0 + (i == 2) * 0.7, (i==2)*0.5, 0.0});
-		speed = Vector<DIM>({ 0.0,0.0,0.0 });
-		acceleration = Vector<DIM>({ 0.0,0.0,0.0 });
-		
-
-		// generate particle
-		particles.emplace_back(i, position, speed, acceleration, mass);
+		loadParticles(particles, load_filename);
 	}
-	
-	// UPDATE CYCLE
+	else 
+	{
+		JsonParser parser("");
+		parser.parse();
 
-	//ForceMatrix<DIM> force_matrix(total_particles);
-	//force_matrix.updateForces(particles);
+		std::srand(std::time(NULL));
+
+		programme_start = time(0);
+
+		for (int i = 0; i < total_particles; i++)
+		{
+			Vector<DIM> position, speed, acceleration;
+			// generate mass
+			double mass(static_cast<double>((std::rand() % 9000) + 1000));
+			// generate new position, velocity and acceleration
+			position = Vector<DIM>({ static_cast<double>(std::rand() % 4000)-2000.0, static_cast<double>(std::rand() % 4000)-2000.0, static_cast<double>(std::rand() % 4000)-2000.0 });
+			//position = Vector<DIM>({ (i==1)*1.0 + (i == 2) * 0.7, (i==2)*0.5, 0.0});
+			speed = Vector<DIM>({ 0.0,0.0,0.0 });
+			acceleration = Vector<DIM>({ 0.0,0.0,0.0 });
+
+
+			// generate particle
+			particles.emplace_back(i, position, speed, acceleration, mass);
+		}
+	}
+
 	Vector<DIM> temp;
 	unsigned int time(0);
 
@@ -86,62 +91,30 @@ int main()
 	// UPDATE SECTION
 	for (time = 0; time < max_ticks; ++time)
 	{
-#ifdef ADVANCED_PROFILING
-		std::array<long long int, total_particles> forceComp_durations_this_tick, posComp_durations_this_tick;
-		std::chrono::microseconds matrixComp_duration_this_tick;
-#endif
 		cout << "Iteration " << std::setw(6) << time << " (simulation seconds: " << std::setw(4) << (double)(time + 1) / ticks_per_second << ")";
 
-		auto start = chrono::high_resolution_clock::now();
-
-#ifdef ADVANCED_PROFILING
+		std::chrono::microseconds matrixComp_duration_this_tick;
 		auto matrixComp_start = chrono::high_resolution_clock::now();
-#endif
+
 		do_simulation_step(particles, 1);
+
 		//compute forces
-		force_matrix.updateForces(particles);
-#ifdef ADVANCED_PROFILING
 		auto matrixComp_end = chrono::high_resolution_clock::now();
 		matrixComp_duration_this_tick = chrono::duration_cast<chrono::microseconds>(matrixComp_end - matrixComp_start);
 		matrixComp_mean_duration += matrixComp_duration_this_tick.count();
-#endif
 
-#pragma omp parallel for private(temp)
-		for (int i = 0; i < total_particles; i++)
+		cout << " --- Execution time: " << std::setw(15) << matrixComp_duration_this_tick.count() << " us";
+		cout << endl;
+
+		if (!(time % save_status_interval))
 		{
-#ifdef ADVANCED_PROFILING
-			auto forceComp_start = chrono::high_resolution_clock::now();
-#endif
-			// updating forces
-			temp = force_matrix.getTotalForceOnParticle(i);
-			particles[i]->updateResultingForce(temp);
-
-#ifdef ADVANCED_PROFILING
-			auto forceComp_end = chrono::high_resolution_clock::now();
-			forceComp_durations_this_tick[i] = chrono::duration_cast<chrono::microseconds>(forceComp_end - forceComp_start).count();
-#endif
+			saveParticles(particles, save_filename);
 		}
-
-#pragma omp parallel for
-		for (int i = 0; i < total_particles; i++)
+		/*
+		if (time == 0 || time == max_ticks - 1)
 		{
-#ifdef ADVANCED_PROFILING
-			auto posComp_start = chrono::high_resolution_clock::now();
-#endif
-			// updating positions
-			particles[i]->calcNewPosition(1);
-
-#ifdef ADVANCED_PROFILING
-			auto posComp_end = chrono::high_resolution_clock::now();
-			posComp_durations_this_tick[i] = chrono::duration_cast<chrono::microseconds>(posComp_end - posComp_start).count();
-#endif
-		}
-
-		if(time == 0 || time == max_ticks - 1)
-		{
-		
-			cout << "----------------------------------------------------------------\nCycle " 
-				<< time << " (Time " << time/ticks_per_second <<" seconds)\n" << endl;
+			cout << "----------------------------------------------------------------\nCycle "
+				<< time << " (Time " << time / ticks_per_second << " seconds)\n" << endl;
 			for (unsigned int i = 0; i < total_particles; i++)
 			{
 				std::cout << "Particle #:" << particles[i].get_particle_id() << std::endl;
@@ -150,36 +123,6 @@ int main()
 				{
 					std::cout << particles[i].get_position()[j] << std::endl;
 				}
-		/*for (unsigned int i = 0; i < total_particles; i++)
-		{
-			//(*(particles[i])).print();
-		}*/
-
-		forceComp_mean_durations_per_tick += accumulate(forceComp_durations_this_tick.begin(), forceComp_durations_this_tick.end(), 0LL) / total_particles;
-
-		posComp_mean_durations_per_tick += accumulate(posComp_durations_this_tick.begin(), posComp_durations_this_tick.end(), 0LL) / total_particles;
-
-		//std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		auto end = chrono::high_resolution_clock::now();
-		auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-
-		cout << " --- Execution time: " << std::setw(15) << duration.count() << " us";
-
-		cout << endl;
-	}
-
-	auto simend = chrono::high_resolution_clock::now();
-	auto simduration = chrono::duration_cast<chrono::microseconds>(simend - simstart);
-
-	forceComp_mean_durations_per_tick /= max_ticks;
-	posComp_mean_durations_per_tick /= max_ticks;
-	matrixComp_mean_duration /= max_ticks;
-
-	cout << "SIMULATION ENDED. Time taken: " << simduration.count() / 1000000 << " s" << endl;
-	total_sim_duration = simduration.count();
-
-	save_profiler_data_text_file(profiling_folder + profiling_file_name);
-}
 				std::cout << "With velocity" << std::endl;
 				for (unsigned int j = 0; j < DIM; j++)
 				{
@@ -192,16 +135,48 @@ int main()
 					std::cout << particles[i].get_acc()[j] << std::endl;
 				}
 			}
-		}
+		}*/
 
-		if (!(time % save_status_interval))
-		{
-			saveParticles(particles, filename);
-		}
-	}	
+
+	} // For time
+	// Calculate mean time
+	matrixComp_mean_duration /= max_ticks;
+
+	// Calculate total execution time
+	auto simend = chrono::high_resolution_clock::now();
+	auto simduration = chrono::duration_cast<chrono::microseconds>(simend - simstart);
+
+	cout << "SIMULATION ENDED. Time taken: " << simduration.count() / 1000000 << " s" << endl;
+	total_sim_duration = simduration.count();
+
+	save_profiler_data_text_file(profiling_folder + profiling_file_name);
+
+	return 0;
 }
-int main()
+
+int main(int argc, char** argv)
 {
+	/*if (argc != 3 && argc != 2)
+	{
+		cout << "Insufficient number of parameters!" << endl;
+		return 1;
+	}
+
+	if (string(argv[1]) == "-json")
+	{
+		load_particles_from_file = false;
+	}
+	else if (string(argv[1]) == "-load")
+	{
+		load_filename = string(argv[2]);
+		load_particles_from_file = true;
+	}
+	else
+	{
+		cout << "First parameter not recognised!" << endl;
+		return 2;
+	}*/
+
 	GLFWwindow* window = nullptr;
 	gl_init(&window);
 
@@ -210,7 +185,13 @@ int main()
 	drawParticles(&window, &particles);
 	//std::thread t1(&drawParticles<DIM>, &window, &particles);
 
-void saveParticles(const std::vector<Particle<DIM>> & particles, const std::string & filename)
+	glfwTerminate();
+	// TODO
+	// Stop the other thread gracefully...
+	t0.join();
+}
+
+void saveParticles(const std::vector<Particle<DIM>>& particles, const std::string& filename)
 {
 	std::ofstream outfile(filename, std::ios::out | std::ios::binary);
 	if (!outfile)
@@ -226,10 +207,10 @@ void saveParticles(const std::vector<Particle<DIM>> & particles, const std::stri
 	}
 	outfile.close();
 }
-	// Close OpenGL window and terminate GLFW
-	glfwTerminate();
+// Close OpenGL window and terminate GLFW
 
-void laodParticles(std::vector<Particle<DIM>> & particles, const std::string & filename)
+
+void loadParticles(std::vector<Particle<DIM>>& particles, const std::string& filename)
 {
 	std::ifstream infile(filename, std::ios::in | std::ios::binary);
 	if (!infile)
@@ -245,7 +226,7 @@ void laodParticles(std::vector<Particle<DIM>> & particles, const std::string & f
 		std::cout << "File has a different particle DIM.\nCannot load file information!" << std::endl;
 		return;
 	}
-	
+
 	infile.read(reinterpret_cast<char*>(&dim), sizeof(unsigned int));
 	for (int i = 0; i < dim; i++)
 	{
@@ -254,8 +235,4 @@ void laodParticles(std::vector<Particle<DIM>> & particles, const std::string & f
 		particles.emplace_back(particle);
 	}
 	infile.close();
-}
-	// TODO
-	// Stop the other thread gracefully...
-	t0.join();
 }
