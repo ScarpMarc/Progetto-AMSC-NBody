@@ -70,7 +70,7 @@ int mainLoop()
 		{
 			Vector<DIM> position, speed, acceleration;
 			// generate mass
-			double mass(static_cast<double>((std::rand() % 9000) + 1000));
+			double mass(static_cast<double>((std::rand() % 100)*1.0e7 + 1.0e7));
 			// generate new position, velocity and acceleration
 			position = Vector<DIM>({ static_cast<double>(std::rand() % 4000)-2000.0, static_cast<double>(std::rand() % 4000)-2000.0, static_cast<double>(std::rand() % 4000)-2000.0 });
 			//position = Vector<DIM>({ (i==1)*1.0 + (i == 2) * 0.7, (i==2)*0.5, 0.0});
