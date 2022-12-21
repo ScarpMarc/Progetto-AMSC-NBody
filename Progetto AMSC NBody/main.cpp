@@ -43,7 +43,6 @@ unsigned int save_status_interval = 10;
 unsigned int screen_refresh_millis = 200;
 unsigned int screenResX = 2048;
 unsigned int screenResY = 2048;
-bool graphics = true;
 
 std::string save_filename = "particles_output.pt";
 std::string load_filename;
@@ -155,6 +154,7 @@ int mainLoop()
 
 int main(int argc, char **argv)
 {
+	use_graphics = true;
 	/*if (argc != 3 && argc != 2)
 	{
 		cout << "Insufficient number of parameters!" << endl;
@@ -181,9 +181,8 @@ int main(int argc, char **argv)
 
 	std::thread t0(mainLoop);
 
-	if (graphics)
+	if (use_graphics)
 	{
-
 		drawParticles(&window, &particles);
 		// std::thread t1(&drawParticles<DIM>, &window, &particles);
 

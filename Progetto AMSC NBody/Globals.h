@@ -24,3 +24,4 @@ extern long long int total_sim_duration;
 #include <ctime>
 extern time_t programme_start;
 
+bool use_graphics;
