@@ -11,7 +11,6 @@
 #include "Constants.h"
 #include "simulation_functions.h"
 #include "json_parser.hpp"
-#include "Constants.h"
 
 #include <random>
 #include <numeric>
@@ -25,6 +24,17 @@ using namespace std;
 void saveParticles(const std::vector<Particle<DIM>>&, const std::string&);
 
 void loadParticles(std::vector<Particle<DIM>>&, const std::string&);
+
+unsigned int total_particles = 1000;
+unsigned long int max_ticks = 100;
+double ticks_per_second = 10.0;
+unsigned int save_status_interval = 10;
+unsigned int screen_refresh_millis = 200;
+unsigned int screenResX = 2048;
+unsigned int screenResY = 2048;
+
+std::string save_filename = "particles_output.pt";
+std::string load_filename;
 
 
 // genera test case e salvalo su file di output
@@ -40,7 +50,6 @@ int main(int argc, char ** argv)
 	Vector<DIM> position, speed, acceleration;
 
 	int cuberoot_of_total_particles = 10;
-	
 
 
 	for (int i = 0; i < cuberoot_of_total_particles; i++)
@@ -71,7 +80,7 @@ int main(int argc, char ** argv)
 
 }
 
-void saveParticles(const std::vector<Particle<DIM>> & particles, const std::string & filename)
+void saveParticles(const std::vector<Particle<DIM>>& particles, const std::string& filename)
 {
 	std::ofstream outfile(filename, std::ios::out | std::ios::binary);
 	if (!outfile)
@@ -79,16 +88,20 @@ void saveParticles(const std::vector<Particle<DIM>> & particles, const std::stri
 		std::cout << "Cannot open file to write particles!" << std::endl;
 		return;
 	}
-	outfile << DIM;
-	outfile << particles.size();
-	for (Particle particle : particles)
+
+	outfile.write(reinterpret_cast<const char*>(&DIM), sizeof(DIM));
+	outfile.write(reinterpret_cast<char*>(&total_particles), sizeof(total_particles));
+
+	for (const Particle<DIM>& particle : particles)
 	{
 		particle.saveToFile(outfile);
 	}
 	outfile.close();
 }
+// Close OpenGL window and terminate GLFW
 
-void loadParticles(std::vector<Particle<DIM>> & particles, const std::string & filename)
+
+void loadParticles(std::vector<Particle<DIM>>& particles, const std::string& filename)
 {
 	std::ifstream infile(filename, std::ios::in | std::ios::binary);
 	if (!infile)
@@ -104,9 +117,9 @@ void loadParticles(std::vector<Particle<DIM>> & particles, const std::string & f
 		std::cout << "File has a different particle DIM.\nCannot load file information!" << std::endl;
 		return;
 	}
-	
-	infile.read(reinterpret_cast<char*>(&dim), sizeof(unsigned int));
-	for (int i = 0; i < dim; i++)
+
+	infile.read(reinterpret_cast<char*>(&total_particles), sizeof(unsigned int));
+	for (int i = 0; i < total_particles; i++)
 	{
 		Particle<DIM> particle(i);
 		particle.loadFromFile(infile);
