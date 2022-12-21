@@ -111,6 +111,8 @@ private:
 	// Mass constant k
 	const double mass_constant_k = 6.673e-11;//0.001;
 
+	const double tol = 1e-3;
+
 	// TODO Electric constant
 
 	// TODO Magnetic constant (?)

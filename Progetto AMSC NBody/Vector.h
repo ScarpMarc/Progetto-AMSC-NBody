@@ -190,7 +190,8 @@ public:
 	{
 		for (unsigned int i = 0; i < dim; ++i)
 		{
-			str << vec[i];
+			double this_dim = vec[i];
+			str.write(reinterpret_cast<char*>(&this_dim), sizeof(double));
 		}
 		return str;
 	}
@@ -200,7 +201,7 @@ public:
 		// read obj from stream
 		for (unsigned int i = 0; i < dim; ++i)
 		{
-			str >> vec[i];
+			str.read(reinterpret_cast<char*>(&(vec[i])), sizeof(double));
 		}
 		return str;
 	}
