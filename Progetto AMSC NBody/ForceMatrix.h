@@ -5,7 +5,6 @@
 #include "Utils.h"
 
 #include "Particle.h"
-#include "Types.h"
 #include "Vector.h"
 
 // for debug
@@ -19,13 +18,11 @@ template <unsigned int dim>
 class ForceMatrix
 {
 public:
-	ForceMatrix(const unsigned int& starting_dim)
+	ForceMatrix(const unsigned int& starting_dim) 
 	{
 		current_particle_amt = 0;
 
 		_updatePartialSums_add(starting_dim); // In the future, call addParticles(starting_dim)
-
-
 
 		/*force_matrix.reserve(starting_dim);
 
@@ -114,7 +111,8 @@ private:
 		else if (row < col) force_matrix[(current_particle_amt - 1) * col - partial_sums[col] + row - 1] = force;
 	}
 
-	unsigned int current_particle_amt = 0;
+
+	unsigned int current_particle_amt;
 	//std::vector<std::unique_ptr<Particle<dim>>> activeParticles;
 	// We only keep positive entries of the symmetric matrix (i.e. those above the diagonal)
 	std::vector<Vector<dim>> force_matrix;
@@ -174,7 +172,8 @@ void ForceMatrix<dim>::updateForces(const std::vector<std::unique_ptr<Particle<d
 {
 	for (unsigned int i = 0; i < particleInteractions.size() - 1; ++i)
 	{
-		for (unsigned int j = i + 1; j < particleInteractions.size(); ++j)
+#pragma omp parallel for
+		for (int j = i + 1; j < particleInteractions.size(); ++j)
 		{
 			_setInteraction(i, j, particleInteractions[i]->calcForce(*particleInteractions[j]));
 		}
@@ -203,7 +202,7 @@ void ForceMatrix<dim>::_updatePartialSums_add(const unsigned int& add_amt)
 	if (partial_sums.empty()) initial_sum = 0;
 	else initial_sum = *(partial_sums.cend() - 1);
 	unsigned int sum = initial_sum;
-	for (unsigned int i = ForceMatrix<dim>::current_particle_amt; i < current_particle_amt + add_amt; ++i)
+	for (unsigned int i = current_particle_amt; i < current_particle_amt + add_amt; ++i)
 	{
 		sum += i;
 		partial_sums.push_back(sum);

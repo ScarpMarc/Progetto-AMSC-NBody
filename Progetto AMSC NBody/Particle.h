@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Types.h"
 #include "Vector.h"
 #include "Constants.h"
 
@@ -110,7 +109,7 @@ private:
 
 	// TODO Set value
 	// Mass constant k
-	const double mass_constant_k = 6.673e-11;
+	const double mass_constant_k = 6.673e-11;//0.001;
 
 	// TODO Electric constant
 
@@ -213,3 +212,4 @@ void Particle<dim>::loadFromFile(std::ifstream& infile)
 {
 	infile >> pos >> speed >> accel >> mass;
 }
+*/
