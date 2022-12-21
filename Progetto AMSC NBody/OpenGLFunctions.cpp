@@ -11,7 +11,6 @@ int gl_init(GLFWwindow** window)
 	if (!glfwInit())
 	{
 		fprintf(stderr, "Failed to initialize GLFW\n");
-		getchar();
 		use_graphics = false;
 		return -1;
 	}
@@ -28,7 +27,6 @@ int gl_init(GLFWwindow** window)
 	if (*window == NULL) 
 	{
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
-		getchar();
 		glfwTerminate();
 		use_graphics = false;
 		return -1;
@@ -40,7 +38,6 @@ int gl_init(GLFWwindow** window)
 	if (glewInit() != GLEW_OK) 
 	{
 		fprintf(stderr, "Failed to initialize GLEW\n");
-		getchar();
 		glfwTerminate();
 		use_graphics = false;
 		return -1;

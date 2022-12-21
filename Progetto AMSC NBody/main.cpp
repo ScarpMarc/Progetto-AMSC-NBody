@@ -180,6 +180,11 @@ int main(int argc, char **argv)
 	GLFWwindow *window = nullptr;
 	gl_init(&window);
 
+	if(!use_graphics)
+	{
+		cout << "Computing without graphics" << endl;
+	}
+	
 	std::thread t0(mainLoop);
 
 	if (use_graphics)
