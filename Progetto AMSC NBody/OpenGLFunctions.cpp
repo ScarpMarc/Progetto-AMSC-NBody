@@ -53,7 +53,7 @@ int gl_init(GLFWwindow** window)
 	glfwSetCursorPos(*window, screenResX / 2, screenResY / 2);
 
 	// Dark blue background
-	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glClearColor(.02f, .05f, .15f, 0.0f);
 
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);

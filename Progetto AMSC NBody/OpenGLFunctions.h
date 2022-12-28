@@ -1,11 +1,10 @@
 #pragma once
-//#define GLEW_STATIC
-
+// #define GLEW_STATIC
 
 #include <iostream>
 #include <vector>
 
-//#include <memory>
+// #include <memory>
 
 #include "Particle.h"
 #include "shader.h"
@@ -21,17 +20,34 @@
 
 #include <chrono>
 #include <thread>
+#include <array>
+#include <random>
 
-int gl_init(GLFWwindow** window);
+#include <iostream>
+
+int gl_init(GLFWwindow **window);
 
 extern "C"
 {
-	GLuint loadDDS(const char* imagepath);
+	GLuint loadDDS(const char *imagepath);
 }
 
 template <unsigned int dim>
-void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
+void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 {
+	std::random_device rd; // obtain a random number from hardware
+    std::mt19937 gen(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(0, 6); // define the range
+
+	std::array<std::array<unsigned char, 3>, 7> stars = {
+		155, 176, 255,
+		170, 191, 255,
+		202, 215, 255,
+		248, 247, 255,
+		255, 244, 234,
+		255, 210, 161,
+		255, 204, 111};
+
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
@@ -49,16 +65,24 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 
 	GLuint Texture = loadDDS("particle.DDS");
 
-	static GLfloat* g_particule_position_size_data = new GLfloat[particles->size() * 4];
-	static GLubyte* g_particule_color_data = new GLubyte[particles->size() * 4];
+	static GLfloat *g_particule_position_size_data = new GLfloat[particles->size() * 4];
+	static GLubyte *g_particule_color_data = new GLubyte[particles->size() * 4];
 
 	// The VBO containing the 4 vertices of the particles.
 	// Thanks to instancing, they will be shared by all particles.
 	static const GLfloat g_vertex_buffer_data[] = {
-		 -0.5f, -0.5f, 0.0f,
-		  0.5f, -0.5f, 0.0f,
-		 -0.5f,  0.5f, 0.0f,
-		  0.5f,  0.5f, 0.0f,
+		-0.5f,
+		-0.5f,
+		0.0f,
+		0.5f,
+		-0.5f,
+		0.0f,
+		-0.5f,
+		0.5f,
+		0.0f,
+		0.5f,
+		0.5f,
+		0.0f,
 	};
 
 	GLuint billboard_vertex_buffer;
@@ -96,28 +120,29 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 		int ParticlesCount = 0;
 		for (int i = 0; i < particles->size(); i++)
 		{
-			Particle<dim>& p = particles->at(i); // shortcut
+			Particle<dim> &p = particles->at(i); // shortcut
 
-			//p.cameradistance = glm::length2(p.pos - CameraPosition);
+			// p.cameradistance = glm::length2(p.pos - CameraPosition);
 
 			// Fill the GPU buffer
 			// TODO account for different dims
 			g_particule_position_size_data[4 * i + 0] = (p.get_position()[0]) / screenResX;
 			g_particule_position_size_data[4 * i + 1] = (p.get_position()[1]) / screenResY;
 			g_particule_position_size_data[4 * i + 2] = (p.get_position()[2]) / screenResX;
-			//std::cout << g_particule_position_size_data[4 * i + 0] << "; " << g_particule_position_size_data[4 * i + 1] << "; " << g_particule_position_size_data[4 * i + 2] << std::endl;
+			// std::cout << g_particule_position_size_data[4 * i + 0] << "; " << g_particule_position_size_data[4 * i + 1] << "; " << g_particule_position_size_data[4 * i + 2] << std::endl;
 
-			g_particule_position_size_data[4 * i + 3] = .01;//p.getMass();
+			g_particule_position_size_data[4 * i + 3] = .01; // p.getMass();
 
-			g_particule_color_data[4 * i + 0] = 0;//p.r;
-			g_particule_color_data[4 * i + 1] = 0;//p.g;
-			g_particule_color_data[4 * i + 2] = 0;//p.b;
-			g_particule_color_data[4 * i + 3] = 128;//p.a;
+			int thisColIdx = distr(gen);
+			g_particule_color_data[4 * i + 0] = stars[thisColIdx][0];	 // p.r;
+			g_particule_color_data[4 * i + 1] = stars[thisColIdx][1];	 // p.g;
+			g_particule_color_data[4 * i + 2] = stars[thisColIdx][2];	 // p.b;
+			g_particule_color_data[4 * i + 3] = 192; // p.a;
 
 			++ParticlesCount;
 		}
 
-		//SortParticles();
+		// SortParticles();
 
 		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 		glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
@@ -149,36 +174,36 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
 		glVertexAttribPointer(
-			0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
+			0,		  // attribute. No particular reason for 0, but must match the layout in the shader.
+			3,		  // size
+			GL_FLOAT, // type
+			GL_FALSE, // normalized?
+			0,		  // stride
+			(void *)0 // array buffer offset
 		);
 
 		// 2nd attribute buffer : positions of particles' centers
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 		glVertexAttribPointer(
-			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-			dim+1,                                // size : x + y + z + size => 4
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
+			1,		  // attribute. No particular reason for 1, but must match the layout in the shader.
+			dim + 1,  // size : x + y + z + size => 4
+			GL_FLOAT, // type
+			GL_FALSE, // normalized?
+			0,		  // stride
+			(void *)0 // array buffer offset
 		);
 
 		// 3rd attribute buffer : particles' colors
 		glEnableVertexAttribArray(2);
 		glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
 		glVertexAttribPointer(
-			2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-			4,                                // size : r + g + b + a => 4
-			GL_UNSIGNED_BYTE,                 // type
-			GL_TRUE,                          // normalized?    *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
-			0,                                // stride
-			(void*)0                          // array buffer offset
+			2,				  // attribute. No particular reason for 1, but must match the layout in the shader.
+			4,				  // size : r + g + b + a => 4
+			GL_UNSIGNED_BYTE, // type
+			GL_TRUE,		  // normalized?    *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
+			0,				  // stride
+			(void *)0		  // array buffer offset
 		);
 
 		// These functions are specific to glDrawArrays*Instanced*.
@@ -192,7 +217,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 		// Draw the particules !
 		// This draws many times a small triangle_strip (which looks like a quad).
 		// This is equivalent to :
-		// for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4), 
+		// for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4),
 		// but faster.
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticlesCount);
 
@@ -206,7 +231,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 
 	} // Check if the ESC key was pressed or the window was closed
 	while (glfwGetKey(*window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-		glfwWindowShouldClose(*window) == 0);
+		   glfwWindowShouldClose(*window) == 0);
 
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &particles_color_buffer);
