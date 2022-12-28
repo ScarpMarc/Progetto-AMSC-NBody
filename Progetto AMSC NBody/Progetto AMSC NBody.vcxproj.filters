@@ -71,6 +71,9 @@
     <ClInclude Include="Profiling.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="json_parser.hpp">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vertexShader.vertexshader">

@@ -30,7 +30,7 @@ int do_simulation_step(std::vector<Particle<dim>> &particles, const unsigned int
 		particles[i].updateResultingForce(temp);
 	}
 #pragma omp parallel for
-	for (unsigned int i = 0; i < particles.size(); ++i)
+	for (int i = 0; i < particles.size(); ++i)
 	{
 		particles[i].calcNewPosition(ticks_step);
 	}
