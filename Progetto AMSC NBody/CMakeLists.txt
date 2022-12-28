@@ -8,10 +8,10 @@ if(OPENGL_FOUND)
 set(sources ${sources} Controls.cpp OpenGLFunctions.cpp shader.cpp)
 endif()
 
-add_executable(main ${sources})
+add_executable(NBody ${sources})
 
-target_include_directories(main PUBLIC .)
-set_property(TARGET main PROPERTY CXX_STANDARD 17)
+target_include_directories(NBody PUBLIC .)
+set_property(TARGET NBody PROPERTY CXX_STANDARD 17)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
