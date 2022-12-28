@@ -17,7 +17,9 @@
 #include <numeric>
 #include <thread>
 
+#ifdef USE_GRAPHICS
 #include "OpenGLFunctions.h"
+#endif
 
 #include "Globals.h"
 
@@ -56,16 +58,21 @@ int mainLoop()
 
 	if (load_particles_from_file)
 	{
+		std::cout << "Attempting to load particle file..." << std::endl;
 		loadParticles(particles, load_filename);
+		std::cout << "Particle file loaded." << std::endl;
 	}
 	else
 	{
+		std::cout << "Attempting to load JSON file..." << std::endl;
 		JsonParser parser("");
 		parser.parse();
 
 		std::srand(std::time(NULL));
 
 		programme_start = time(0);
+
+		std::cout << "JSON file loaded." << std::endl;
 
 		for (int i = 0; i < total_particles; i++)
 		{
@@ -81,6 +88,8 @@ int mainLoop()
 			// generate particle
 			particles.emplace_back(i, position, speed, acceleration, mass);
 		}
+
+		std::cout << "Particles generated." << std::endl;
 	}
 
 	Vector<DIM> temp;
@@ -91,7 +100,10 @@ int mainLoop()
 	// UPDATE SECTION
 	for (time = 0; time < max_ticks; ++time)
 	{
-		cout << "Iteration " << std::setw(6) << time << " (simulation seconds: " << std::setw(4) << (double)(time + 1) / ticks_per_second << ")";
+		if (!(time % (max_ticks / 100)))
+		{
+			cout << "Iteration " << std::setw(6) << time << " (simulation seconds: " << std::setw(4) << (double)(time + 1) / ticks_per_second << ")";
+		}
 
 		std::chrono::microseconds matrixComp_duration_this_tick;
 		auto matrixComp_start = chrono::high_resolution_clock::now();
@@ -103,8 +115,11 @@ int mainLoop()
 		matrixComp_duration_this_tick = chrono::duration_cast<chrono::microseconds>(matrixComp_end - matrixComp_start);
 		matrixComp_mean_duration += matrixComp_duration_this_tick.count();
 
-		cout << " --- Execution time: " << std::setw(15) << matrixComp_duration_this_tick.count() << " us";
-		cout << endl;
+		if (!(time % (max_ticks / 100)))
+		{
+			cout << " --- Execution time: " << std::setw(15) << matrixComp_duration_this_tick.count() << " us";
+			cout << endl;
+		}
 
 		if (!(time % save_status_interval))
 		{
@@ -145,7 +160,7 @@ int mainLoop()
 	auto simend = chrono::high_resolution_clock::now();
 	auto simduration = chrono::duration_cast<chrono::microseconds>(simend - simstart);
 
-	cout << "SIMULATION ENDED. Time taken: " << simduration.count() / 1000000 << " s" << endl;
+	cout << "SIMULATION ENDED. Time taken: " << (double)simduration.count() / 1000000.0 << " s" << endl;
 	total_sim_duration = simduration.count();
 
 	save_profiler_data_text_file(profiling_folder + profiling_file_name);
@@ -155,7 +170,11 @@ int mainLoop()
 
 int main(int argc, char **argv)
 {
+#ifdef USE_GRAPHICS
 	use_graphics = true;
+#else
+	use_graphics = false;
+#endif
 	/*if (argc != 3 && argc != 2)
 	{
 		cout << "Insufficient number of parameters!" << endl;
@@ -176,24 +195,25 @@ int main(int argc, char **argv)
 		cout << "First parameter not recognised!" << endl;
 		return 2;
 	}*/
-
+#ifdef USE_GRAPHICS
 	GLFWwindow *window = nullptr;
 	gl_init(&window);
+#endif
 
-	if(!use_graphics)
+	if (!use_graphics)
 	{
 		cout << "Computing without graphics" << endl;
 	}
-	
+
 	std::thread t0(mainLoop);
 
-	if (use_graphics)
-	{
-		drawParticles(&window, &particles);
-		// std::thread t1(&drawParticles<DIM>, &window, &particles);
+#ifdef USE_GRAPHICS
+	drawParticles(&window, &particles);
+	// std::thread t1(&drawParticles<DIM>, &window, &particles);
 
-		glfwTerminate();
-	}
+	glfwTerminate();
+#endif
+
 	// TODO
 	// Stop the other thread gracefully...
 	t0.join();

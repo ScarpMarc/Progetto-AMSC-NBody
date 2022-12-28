@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.20)
 
 project("Progetto AMSC Nbody")
 
-add_executable(main main.cpp Profiling.cpp Controls.cpp OpenGLFunctions.cpp shader.cpp)
+set(sources main.cpp Profiling.cpp)
+
+if(OPENGL_FOUND)
+set(sources ${sources} Controls.cpp OpenGLFunctions.cpp shader.cpp)
+endif()
+
+add_executable(main ${sources})
 
 target_include_directories(main PUBLIC .)
 set_property(TARGET main PROPERTY CXX_STANDARD 17)
