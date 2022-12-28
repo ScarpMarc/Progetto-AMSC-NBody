@@ -167,14 +167,15 @@
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragmentShader.fragmentshader" />
-    <None Include="vertexShader.vertexshader" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="..\Resources\particle.DDS" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Resources\fragmentShader.fragmentshader" />
+    <None Include="..\Resources\settings.json" />
+    <None Include="..\Resources\vertexShader.vertexshader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

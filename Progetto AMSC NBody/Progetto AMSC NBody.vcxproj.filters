@@ -76,19 +76,22 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vertexShader.vertexshader">
-      <Filter>File di risorse</Filter>
-    </None>
-    <None Include="fragmentShader.fragmentshader">
-      <Filter>File di risorse</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\particle.DDS">
       <Filter>File di risorse</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Resources\fragmentShader.fragmentshader">
+      <Filter>File di risorse</Filter>
+    </None>
+    <None Include="..\Resources\settings.json">
+      <Filter>File di risorse</Filter>
+    </None>
+    <None Include="..\Resources\vertexShader.vertexshader">
+      <Filter>File di risorse</Filter>
+    </None>
   </ItemGroup>
 </Project>

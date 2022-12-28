@@ -45,11 +45,11 @@ void computeMatricesFromInputs(GLFWwindow** window)
 	float deltaTime = float(currentTime - lastTime);
 
 	// Get mouse position
-	double xpos, ypos;
-	glfwGetCursorPos(*window, &xpos, &ypos);
+	//double xpos, ypos;
+	//glfwGetCursorPos(*window, &xpos, &ypos);
 
 	// Reset mouse position for next frame
-	glfwSetCursorPos(*window, screenResX / 2, screenResY / 2);
+	//glfwSetCursorPos(*window, screenResX / 2, screenResY / 2);
 
 	// Compute new orientation
 	/*horizontalAngle += mouseSpeed * float(screenResX / 2 - xpos);
