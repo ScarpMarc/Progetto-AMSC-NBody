@@ -196,8 +196,11 @@ int main(int argc, char **argv)
 		return 2;
 	}*/
 #ifdef USE_GRAPHICS
-	GLFWwindow *window = nullptr;
-	gl_init(&window);
+	GLFWwindow* window = nullptr;
+	if (use_graphics)
+	{
+		gl_init(&window);
+	}
 #endif
 
 	if (!use_graphics)
@@ -208,10 +211,13 @@ int main(int argc, char **argv)
 	std::thread t0(mainLoop);
 
 #ifdef USE_GRAPHICS
-	drawParticles(&window, &particles);
-	// std::thread t1(&drawParticles<DIM>, &window, &particles);
+	if (use_graphics)
+	{
+		drawParticles(&window, &particles);
+		// std::thread t1(&drawParticles<DIM>, &window, &particles);
 
-	glfwTerminate();
+		glfwTerminate();
+	}
 #endif
 
 	// TODO
