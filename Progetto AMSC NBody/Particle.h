@@ -20,22 +20,21 @@ public:
 	/// Constructor
 	/// </summary>
 	/// <param name =
-	Particle(unsigned int id,
+	Particle(
 		Vector<dim> position,
 		Vector<dim> speed,
 		Vector<dim> acceleration,
 		double mass) :
-		ID(id),
+		ID(maxID),
 		pos(position),
 		speed(speed),
 		accel(acceleration),
-		mass(mass)
-	{}
-
-	Particle(unsigned int id)
+		mass(mass) 
 	{
-		Particle(id, {}, {}, {}, 0.0);
+		++maxID;
 	}
+
+	Particle() : Particle({}, {}, {}, 0.0) {}
 
 	/// <summary>
 	/// Calculates the force exerted by the other particle on this particle.
@@ -96,11 +95,11 @@ public:
 	/// </summary>
 	inline const unsigned int& get_particle_id() const { return ID; }
 
-private:
+	constexpr inline bool isCluster() const { return false; }
+
+protected:
 	void _updateSpeed(const unsigned int& delta_ticks);
 	void _updatePos(const unsigned int& delta_ticks);
-
-	unsigned int ID; // particle id number
 
 	Vector<dim> pos;
 	Vector<dim> speed;
@@ -112,6 +111,10 @@ private:
 	const double mass_constant_k = 6.673e-11;//0.001;
 
 	const double tol = 1e-3;
+
+private:
+	static unsigned int maxID;
+	unsigned int ID; // particle id number
 
 	// TODO Electric constant
 

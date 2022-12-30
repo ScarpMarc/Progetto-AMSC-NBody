@@ -152,6 +152,8 @@
     <ClCompile Include="Controls.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OpenGLFunctions.cpp" />
+    <ClCompile Include="Particle.cpp" />
+    <ClCompile Include="ParticleCluster.cpp" />
     <ClCompile Include="Profiling.cpp" />
     <ClCompile Include="shader.cpp" />
   </ItemGroup>
@@ -163,6 +165,7 @@
     <ClInclude Include="json_parser.hpp" />
     <ClInclude Include="OpenGLFunctions.h" />
     <ClInclude Include="Particle.h" />
+    <ClInclude Include="ParticleCluster.h" />
     <ClInclude Include="Profiling.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="simulation_functions.h" />

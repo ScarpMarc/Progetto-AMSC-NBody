@@ -6,6 +6,7 @@
 #include <ctime>
 #include <chrono>
 #include "Particle.h"
+#include "ParticleCluster.h"
 #include "Vector.h"
 #include "ForceMatrix.h"
 #include "Constants.h"
@@ -22,6 +23,14 @@
 #endif
 
 #include "Globals.h"
+
+// Must do initialisation in a source file
+template<unsigned int dim>
+unsigned int Particle<dim>::maxID = 0;
+
+// Must do initialisation in a source file
+template<unsigned int dim>
+unsigned int ParticleCluster<dim>::maxID = 0;
 
 using namespace std;
 
@@ -94,7 +103,7 @@ int mainLoop()
 			acceleration = Vector<DIM>({0.0, 0.0, 0.0});
 
 			// generate particle
-			particles.emplace_back(i, position, speed, acceleration, mass);
+			particles.emplace_back(position, speed, acceleration, mass);
 		}
 
 		std::cout << "Particles generated." << std::endl;
@@ -273,7 +282,7 @@ void loadParticles(std::vector<Particle<DIM>> &particles, const std::string &fil
 	infile.read(reinterpret_cast<char *>(&total_particles), sizeof(unsigned int));
 	for (int i = 0; i < total_particles; i++)
 	{
-		Particle<DIM> particle(i);
+		Particle<DIM> particle;
 		particle.loadFromFile(infile);
 		particles.emplace_back(particle);
 	}

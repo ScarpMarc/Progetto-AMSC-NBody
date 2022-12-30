@@ -36,6 +36,12 @@
     <ClCompile Include="Profiling.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="ParticleCluster.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="Particle.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
@@ -72,6 +78,9 @@
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="json_parser.hpp">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleCluster.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
