@@ -52,6 +52,14 @@ std::string load_filename;
 
 bool load_particles_from_file = false;
 
+#ifdef _WIN32
+extern "C"
+{
+	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 int mainLoop()
 {
 	total_sim_duration = 0;

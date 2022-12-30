@@ -126,9 +126,9 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 
 			// Fill the GPU buffer
 			// TODO account for different dims
-			g_particule_position_size_data[4 * i + 0] = (p.get_position()[0]) / screenResX;
-			g_particule_position_size_data[4 * i + 1] = (p.get_position()[1]) / screenResY;
-			g_particule_position_size_data[4 * i + 2] = (p.get_position()[2]) / screenResX;
+			g_particule_position_size_data[4 * i + 0] = (GLfloat)(p.get_position()[0]) / screenResX;
+			g_particule_position_size_data[4 * i + 1] = (GLfloat)(p.get_position()[1]) / screenResY;
+			g_particule_position_size_data[4 * i + 2] = (GLfloat)(p.get_position()[2]) / screenResX;
 			// std::cout << g_particule_position_size_data[4 * i + 0] << "; " << g_particule_position_size_data[4 * i + 1] << "; " << g_particule_position_size_data[4 * i + 2] << std::endl;
 
 			g_particule_position_size_data[4 * i + 3] = .01; // p.getMass();
