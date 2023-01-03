@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <algorithm>
 #include "Particle.h"
 #include "ParticleCluster.h"
 #include "Vector.h"
@@ -32,6 +33,11 @@ unsigned int Particle<dim>::maxID = 0;
 template<unsigned int dim>
 unsigned int ParticleCluster<dim>::maxID = 0;
 
+template<unsigned int dim>
+Vector<dim> Particle<dim>::max_boundary; 
+template<unsigned int dim>
+Vector<dim> Particle<dim>::min_boundary;
+
 using namespace std;
 
 long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
@@ -55,6 +61,9 @@ unsigned int screen_refresh_millis = 200;
 unsigned int screenResX = 2048;
 unsigned int screenResY = 2048;
 bool use_graphics = true;
+double domain_start_x = -5000.0, domain_end_x = 5000.0;
+double domain_start_y = -5000.0, domain_end_y = 5000.0;
+double domain_start_z = -5000.0, domain_end_z = 5000.0;
 
 std::string save_filename = "particles_output.pt";
 std::string load_filename;

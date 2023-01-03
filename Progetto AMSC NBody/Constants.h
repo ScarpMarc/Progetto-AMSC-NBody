@@ -49,3 +49,7 @@ extern unsigned int screenResX;
 /// Screen resolution in the vertical direction
 /// </summary>
 extern unsigned int screenResY;
+
+extern double domain_start_x, domain_end_x;
+extern double domain_start_y, domain_end_y;
+extern double domain_start_z, domain_end_z;

@@ -25,19 +25,25 @@
 
 #include <iostream>
 
-int gl_init(GLFWwindow **window);
+int gl_init(GLFWwindow** window);
 
 extern "C"
 {
-	GLuint loadDDS(const char *imagepath);
+	GLuint loadDDS(const char* imagepath);
+}
+
+template<unsigned int dim>
+void generate_boundary_vertices(const std::vector<Particle<dim>>* particles, GLfloat* buffer_data)
+{
+	// TODO
 }
 
 template <unsigned int dim>
-void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
+void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 {
 	std::random_device rd; // obtain a random number from hardware
-    std::mt19937 gen(rd()); // seed the generator
-    std::uniform_int_distribution<> distr(0, 6); // define the range
+	std::mt19937 gen(rd()); // seed the generator
+	std::uniform_int_distribution<> distr(0, 6); // define the range
 
 	std::array<std::array<unsigned char, 3>, 7> stars = {
 		155, 176, 255,
@@ -46,7 +52,7 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 		248, 247, 255,
 		255, 244, 234,
 		255, 210, 161,
-		255, 204, 111};
+		255, 204, 111 };
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -65,8 +71,8 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 
 	GLuint Texture = loadDDS("particle.DDS");
 
-	static GLfloat *g_particule_position_size_data = new GLfloat[particles->size() * 4];
-	static GLubyte *g_particule_color_data = new GLubyte[particles->size() * 4];
+	static GLfloat* g_particule_position_size_data = new GLfloat[particles->size() * 4];
+	static GLubyte* g_particule_color_data = new GLubyte[particles->size() * 4];
 
 	// The VBO containing the 4 vertices of the particles.
 	// Thanks to instancing, they will be shared by all particles.
@@ -104,6 +110,15 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
 	glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
 
+	// The VBO containing the boundaries of the field
+	GLuint global_boundaries_buffer;
+	glGenBuffers(1, &global_boundaries_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, global_boundaries_buffer);
+	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
+	glBufferData(GL_ARRAY_BUFFER, 12 * 3 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Should be 12 triangles per one cube
+
+	GLfloat* boundary_vertices = (GLfloat*)malloc(12 * 3 * sizeof(GLfloat));
+
 	do
 	{
 		// Clear the screen
@@ -120,7 +135,7 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 		int ParticlesCount = 0;
 		for (int i = 0; i < particles->size(); i++)
 		{
-			Particle<dim> &p = particles->at(i); // shortcut
+			Particle<dim>& p = particles->at(i); // shortcut
 
 			// p.cameradistance = glm::length2(p.pos - CameraPosition);
 
@@ -141,6 +156,9 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 
 			++ParticlesCount;
 		}
+
+		// Field boundaries
+		generate_boundary_vertices(particles, &boundary_vertices);
 
 		// SortParticles();
 
@@ -179,7 +197,7 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 			GL_FLOAT, // type
 			GL_FALSE, // normalized?
 			0,		  // stride
-			(void *)0 // array buffer offset
+			(void*)0 // array buffer offset
 		);
 
 		// 2nd attribute buffer : positions of particles' centers
@@ -191,7 +209,7 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 			GL_FLOAT, // type
 			GL_FALSE, // normalized?
 			0,		  // stride
-			(void *)0 // array buffer offset
+			(void*)0 // array buffer offset
 		);
 
 		// 3rd attribute buffer : particles' colors
@@ -203,7 +221,7 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 			GL_UNSIGNED_BYTE, // type
 			GL_TRUE,		  // normalized?    *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
 			0,				  // stride
-			(void *)0		  // array buffer offset
+			(void*)0		  // array buffer offset
 		);
 
 		// These functions are specific to glDrawArrays*Instanced*.
@@ -231,7 +249,7 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 
 	} // Check if the ESC key was pressed or the window was closed
 	while (glfwGetKey(*window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-		   glfwWindowShouldClose(*window) == 0);
+		glfwWindowShouldClose(*window) == 0);
 
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &particles_color_buffer);
@@ -240,4 +258,6 @@ void drawParticles(GLFWwindow **window, std::vector<Particle<dim>> *particles)
 	glDeleteProgram(programID);
 	glDeleteTextures(1, &Texture);
 	glDeleteVertexArrays(1, &VertexArrayID);
+
+	free(boundary_vertices);
 }

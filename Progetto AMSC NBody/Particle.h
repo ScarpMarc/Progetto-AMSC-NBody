@@ -29,18 +29,37 @@ public:
 		pos(position),
 		speed(speed),
 		accel(acceleration),
-		mass(mass) 
+		mass(mass)
 	{
+		for (unsigned int d = 0; d < dim; ++d)
+		{
+			if (max_boundary[d] > pos[d]) max_boundary[d] = pos[d];
+			if (min_boundary[d] < pos[d]) min_boundary[d] = pos[d];
+		}
+
 		++maxID;
 	}
 
 	Particle() : Particle({}, {}, {}, 0.0) {}
 
 	/// <summary>
-	/// Calculates the force exerted by the other particle on this particle.
+	/// Needed to be able to cast to ParticleCluster through smart pointers.
+	/// </summary>
+	virtual ~Particle() {}
+
+	/// <summary>
+	/// DEPRECATED Calculates the force exerted by the other particle on this particle.
 	/// </summary>
 	/// <param name="other">Other particle</param>
 	Vector<dim> calcForce(const Particle<dim>& other) const;
+
+	/// <summary>
+	/// Calculates the force exerted by the other particle on this particle but omits 
+	///		multiplication by the mass constant and the particle mass in order to 
+	///		make the calculation more efficient.
+	/// </summary>
+	/// <typeparam name="dim"></typeparam>
+	Vector<dim> calcForceCoefficients(const Particle<dim>& other) const;
 
 	/// <summary>
 	/// Calculates the absolute distance between this particle and the other.
@@ -95,7 +114,15 @@ public:
 	/// </summary>
 	inline const unsigned int& get_particle_id() const { return ID; }
 
+	inline static const Vector<dim>& get_global_max_boundary() { return max_boundary; }
+
+	inline static const Vector<dim>& get_global_min_boundary() { return min_boundary; }
+
 	constexpr inline bool isCluster() const { return false; }
+
+	// TODO Set value
+	// Mass constant k
+	const double mass_constant_k = 6.673e-11;//0.001;
 
 protected:
 	void _updateSpeed(const unsigned int& delta_ticks);
@@ -106,11 +133,10 @@ protected:
 	Vector<dim> accel;
 	double mass;
 
-	// TODO Set value
-	// Mass constant k
-	const double mass_constant_k = 6.673e-11;//0.001;
-
 	const double tol = 1e-3;
+
+	static Vector<dim> max_boundary; // Updated by clusters
+	static Vector<dim> min_boundary; // Updated by clusters
 
 private:
 	static unsigned int maxID;
@@ -184,11 +210,16 @@ void Particle<dim>::_updatePos(const unsigned int& delta_ticks)
 	for (int i = 0; i < dim; ++i)
 	{
 		pos[i] += speed[i] * ((double)delta_ticks / ticks_per_second);
+
+#pragma omp critical
+		{
+			if (max_boundary[i] < pos[i]) max_boundary[i] = pos[i];
+		}
 	}
 }
 
 template<unsigned int dim>
-Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
+Vector<dim> Particle<dim>::calcForceCoefficients(const Particle<dim>& other) const
 {
 	Vector<dim> displacement = calcDistance(other);
 	double distance = displacement.euNorm();
@@ -196,7 +227,13 @@ Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
 	{
 		return Vector<dim>();
 	}
-	return displacement * (/*-*/mass_constant_k * mass * other.getMass()) / (pow(distance, 3));
+	return displacement * other.getMass() / (pow(distance, 3));
+}
+
+template<unsigned int dim>
+Vector<dim> Particle<dim>::calcForce(const Particle<dim>& other) const
+{
+	return calcForceCoefficients(other) * mass_constant_k * mass;
 }
 
 template<unsigned int dim>

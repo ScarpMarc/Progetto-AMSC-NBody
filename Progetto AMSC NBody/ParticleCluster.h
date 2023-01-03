@@ -2,6 +2,12 @@
 #include <vector>
 
 #include "Particle.h"
+/*
+	TODO
+	Update clusters at each frame
+	Update boundaries at each frame
+*/
+
 
 /// <summary>
 /// Represents a cluster of particles, used to optimise the calculation of interactions with other particles/clusters.
@@ -22,6 +28,9 @@ public:
 	/// </summary>
 	ParticleCluster() : Particle<dim>(), ID(maxID)
 	{
+		local_max_boundary = Particle<dim>::max_boundary;
+		local_min_boundary = Particle<dim>::min_boundary;
+
 		++maxID;
 	}
 
@@ -29,12 +38,27 @@ public:
 	/// <summary>
 	/// Constructor that takes the particle list, computes the sum of each property and initialises the relevant fields.
 	/// </summary>
-	/*ParticleCluster(const std::vector < std::shared_ptr<Particle<dim>>> &children) : Particle<dim>(), ID(maxID)
+	ParticleCluster(const std::vector < std::shared_ptr<Particle<dim>>>& children) : Particle<dim>(), ID(maxID), children(children)
 	{
-		++maxID;
-	}*/
+		for (const std::shared_ptr<Particle<dim>>& p : children)
+		{
+			Particle<dim>::mass += p->getMass();
+			Particle<dim>::pos += p->get_position();
+			Particle<dim>::speed += p->get_speed();
+			Particle<dim>::accel += p->get_acc();
+		}
 
-	// Mehtods that calculate speed, acceleration, update force... and all getters are those of the base class
+		local_max_boundary = Particle<dim>::max_boundary;
+		local_min_boundary = Particle<dim>::min_boundary;
+
+		++maxID;
+	}
+
+	constexpr inline size_t get_children_num() const { return children.size(); }
+
+	constexpr inline size_t get_children_num_recursive() const;
+
+	// Methods that calculate speed, acceleration, update force... and all getters are those of the base class
 
 	// TODO
 	//void saveToFile(std::ofstream& outfile) const;
@@ -48,10 +72,57 @@ public:
 
 	constexpr inline bool isCluster() const { return false; }
 
+	constexpr void update_boundaries();
+
+	inline const Vector<dim>& get_max_boundary() const { return local_max_boundary; }
+
+	inline const Vector<dim>& get_min_boundary() const { return local_min_boundary; }
 
 private:
 	static unsigned int maxID;
 	unsigned int ID; // cluster id number
 
+	Vector<dim> local_max_boundary;
+	Vector<dim> local_min_boundary;
+
+	/// <summary>
+	/// Children particles of this object. We assume that all children are either
+	///		Particles or ParticleClusters.
+	/// </summary>
 	std::vector < std::shared_ptr<Particle<dim>>> children;
 };
+
+template<unsigned int dim>
+constexpr inline size_t ParticleCluster<dim>::get_children_num_recursive() const
+{
+	size_t output = children.size();
+	for (const std::shared_ptr<Particle<dim>>& p : children)
+	{
+		if (ParticleCluster<dim>* c = dynamic_cast<ParticleCluster<dim>*>(p.get()))
+			output += c->get_children_num_recursive();
+		else break;
+	}
+	return output;
+}
+
+template<unsigned int dim>
+constexpr void ParticleCluster<dim>::update_boundaries()
+{
+	for (unsigned int d = 0; d < dim; ++d)
+	{
+		double lmaxb_component = local_max_boundary[d];
+		double lminb_component = local_min_boundary[d];
+		//double lmaxb_s_comp = Particle<dim>::max_boundary[d];
+#pragma omp parallel for shared(lmaxb_component, lminb_component) reduction(max: lmaxb_comp, lminb_component)
+		for (unsigned int i = 0; i < children.size(); ++i)
+		{
+			double this_pos_component = children[i]->get_position()[d];
+			lmaxb_component = this_pos_component > lmaxb_component ? this_pos_component : lmaxb_component;
+			lminb_component = this_pos_component < lminb_component ? this_pos_component : lminb_component;
+		}
+		local_max_boundary[d] = lmaxb_component;
+		local_min_boundary[d] = lminb_component;
+		if (Particle<dim>::max_boundary[d] > lmaxb_component) local_max_boundary[d] = lmaxb_component;
+		if (Particle<dim>::min_boundary[d] < lminb_component) local_min_boundary[d] = lminb_component;
+	}
+}

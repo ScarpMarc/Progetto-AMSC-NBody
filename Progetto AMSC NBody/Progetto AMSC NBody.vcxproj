@@ -156,12 +156,14 @@
     <ClCompile Include="ParticleCluster.cpp" />
     <ClCompile Include="Profiling.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="Visualisation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Controls.h" />
     <ClInclude Include="ForceMatrix.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="Visualisation.h" />
     <ClInclude Include="json_parser.hpp" />
     <ClInclude Include="OpenGLFunctions.h" />
     <ClInclude Include="Particle.h" />
