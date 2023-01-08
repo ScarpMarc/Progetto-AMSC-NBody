@@ -207,6 +207,34 @@ public:
 	}
 
 	/// <summary>
+	/// Writes the Vector's contents to a buffer.
+	/// We assume the buffer has enough space to accomodate <code>dim</code> values.
+	/// </summary>
+	/// <param name="out_vec">Array to write to</param>
+	/// <param name="start">Where to start in the array</param>
+	constexpr void assign_to(double* out_vec, const unsigned long start = 0UL) const
+	{
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			out_vec[i + start] = components[dim];
+		}
+	}
+
+	/// <summary>
+	/// Writes the Vector's contents to a buffer of <code>float</code>s.
+	/// We assume the buffer has enough space to accomodate <code>dim</code> values.
+	/// </summary>
+	/// <param name="out_vec">Array to write to</param>
+	/// <param name="start">Where to start in the array</param>
+	constexpr void assign_to_float(float* out_vec, const unsigned long start = 0UL) const
+	{
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			out_vec[i + start] = static_cast<float>(components[dim]);
+		}
+	}
+
+	/// <summary>
 	/// Euclidean norm of the vector
 	/// </summary>
 	double euNorm() const;

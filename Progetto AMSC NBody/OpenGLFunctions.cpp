@@ -24,7 +24,7 @@ int gl_init(GLFWwindow** window)
 
 	// Open a window and create its OpenGL context
 	*window = glfwCreateWindow(screenResX, screenResY, "NBody", NULL, NULL);
-	if (*window == NULL) 
+	if (*window == NULL)
 	{
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		glfwTerminate();
@@ -35,7 +35,7 @@ int gl_init(GLFWwindow** window)
 
 	// Initialize GLEW
 	glewExperimental = true; // Needed for core profile
-	if (glewInit() != GLEW_OK) 
+	if (glewInit() != GLEW_OK)
 	{
 		fprintf(stderr, "Failed to initialize GLEW\n");
 		glfwTerminate();
@@ -53,7 +53,8 @@ int gl_init(GLFWwindow** window)
 	glfwSetCursorPos(*window, screenResX / 2, screenResY / 2);
 
 	// Dark blue background
-	glClearColor(.02f, .05f, .15f, 0.0f);
+	//glClearColor(.02f, .05f, .15f, 0.0f);
+	glClearColor(.99f, .99f, .99f, 0.0f);
 
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
@@ -88,13 +89,13 @@ extern "C"
 		/* verify the type of file */
 		unsigned char filecode_temp[4];
 		input_file.read(filecode_temp, 4);
-		char filecode[4] = {0,0,0,0}; // Crude workaround to basic ifstream type
-		for(int i = 0; i < 4; ++i)
+		char filecode[4] = { 0,0,0,0 }; // Crude workaround to basic ifstream type
+		for (int i = 0; i < 4; ++i)
 		{
 			filecode[i] |= filecode_temp[i];
 		}
 		//fread(filecode, 1, 4, fp);
-		if (strncmp(filecode, "DDS ", 4) != 0) 
+		if (strncmp(filecode, "DDS ", 4) != 0)
 		{
 			//fclose(fp);
 			input_file.close();

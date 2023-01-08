@@ -214,6 +214,7 @@ void Particle<dim>::_updatePos(const unsigned int& delta_ticks)
 #pragma omp critical
 		{
 			if (max_boundary[i] < pos[i]) max_boundary[i] = pos[i];
+			if (min_boundary[i] < pos[i]) min_boundary[i] = pos[i];
 		}
 	}
 }
