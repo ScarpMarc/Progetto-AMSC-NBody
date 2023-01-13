@@ -45,7 +45,7 @@ public:
 	/// <summary>
 	/// Needed to be able to cast to ParticleCluster through smart pointers.
 	/// </summary>
-	virtual ~Particle() {}
+	virtual ~Particle() = default;
 
 	/// <summary>
 	/// DEPRECATED Calculates the force exerted by the other particle on this particle.
