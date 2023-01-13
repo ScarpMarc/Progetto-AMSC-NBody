@@ -12,6 +12,11 @@
 #include "Controls.h"
 
 #include <iostream>
+#ifdef _WIN32
+//#include <GL/gl.h>
+#else
+
+#endif
 
 #include "../libs/include/GL/glew.h"
 #include "../glfw/include/GLFW/glfw3.h"
