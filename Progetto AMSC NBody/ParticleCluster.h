@@ -113,7 +113,7 @@ constexpr void ParticleCluster<dim>::update_boundaries()
 		double lmaxb_component = local_max_boundary[d];
 		double lminb_component = local_min_boundary[d];
 		//double lmaxb_s_comp = Particle<dim>::max_boundary[d];
-#pragma omp parallel for shared(lmaxb_component, lminb_component) reduction(max: lmaxb_comp, lminb_component)
+#pragma omp parallel for reduction(max: lmaxb_component, lminb_component)
 		for (unsigned int i = 0; i < children.size(); ++i)
 		{
 			double this_pos_component = children[i]->get_position()[d];

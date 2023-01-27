@@ -27,6 +27,7 @@
 #include <thread>
 #include <array>
 #include <random>
+#include <cstring>
 
 #include <iostream>
 

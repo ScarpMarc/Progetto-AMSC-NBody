@@ -5,9 +5,17 @@ cmake_minimum_required (VERSION 3.20)
 
 project ("Progetto AMSC NBody")
 
-find_package(OpenGL OPTIONAL_COMPONENTS OpenGL)
-if(OPENGL_FOUND)
-add_compile_definitions(USE_GRAPHICS)
+SET(NO_GRAPHICS "OFF" CACHE BOOL "Force graphics OFF")
+
+if(NO_GRAPHICS)
+    message("Compiling WITHOUT graphics")
+endif()
+
+if(NOT NO_GRAPHICS)
+    find_package(OpenGL OPTIONAL_COMPONENTS OpenGL)
+    if(OPENGL_FOUND)
+        add_compile_definitions(USE_GRAPHICS)
+    endif()
 endif()
 #target_link_libraries(NBody PUBLIC OpenGL::OpenGL)
 
