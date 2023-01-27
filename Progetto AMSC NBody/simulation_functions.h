@@ -3,7 +3,29 @@
 #include <vector>
 
 #include "Particle.h"
+#include "ParticleCluster.h"
 
+template <unsigned int dim>
+void assign_particle(const Particle<dim>& particle, const ParticleCluster<dim>& root)
+{
+
+}
+
+/// <summary>
+/// Handles one simulation step.
+/// </summary>
+/// <remarks> 
+/// First, we divide particles into clusters by assigning them to already-existing ones, and then we create new ones if necessary;
+///		after that, we query again iteratively until all clusters are (at least) partially full, but not overbooked.
+///		We also compute the near-interaction list of each cluster.
+/// 
+/// After each particle has been assigned to a cluster, we can use the fast-multipole method to compute far-field approximations
+///		and compute forces/speeds
+/// </remarks> 
+/// <typeparam name="dim">Dimension of the problem</typeparam>
+/// <param name="particles">Vector containing the particles</param>
+/// <param name="ticks_step">Delta ticks time step</param>
+/// <returns>0 if no problems occurred</returns>
 template <unsigned int dim>
 int do_simulation_step(std::vector<Particle<dim>>& particles, const unsigned int& ticks_step)
 {

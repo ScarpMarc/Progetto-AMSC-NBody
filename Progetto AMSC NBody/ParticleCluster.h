@@ -11,12 +11,14 @@
 
 /// <summary>
 /// Represents a cluster of particles, used to optimise the calculation of interactions with other particles/clusters.
+/// </summary>
+/// <remarks>
 /// Effectively, a cluster acts as a virtual particle and retains all its properties. 
 /// Methods that make use of Particle's properties (position, speed, acceleration, mass) are the exact same as the base class;
 ///		each getter method now returns the sum over all particles of the relevant property, which is calculated upon creation or
 ///		in general when particles are added/removed.
-/// Clusters can have other clusters among their children.
-/// </summary>
+/// Clusters can have either particles OR other clusters among their children.
+/// </remarks>
 /// <typeparam name="dim">Dimension of the space this cluster is living in (2D, 3D)</typeparam>
 template<unsigned int dim>
 class ParticleCluster :
@@ -31,10 +33,12 @@ public:
 		local_max_boundary = Particle<dim>::max_boundary;
 		local_min_boundary = Particle<dim>::min_boundary;
 
+		active = false;
+
 		++maxID;
 	}
 
-	//TODO
+	// TODO
 	/// <summary>
 	/// Constructor that takes the particle list, computes the sum of each property and initialises the relevant fields.
 	/// </summary>
@@ -50,6 +54,8 @@ public:
 
 		local_max_boundary = Particle<dim>::max_boundary;
 		local_min_boundary = Particle<dim>::min_boundary;
+
+		active = true;
 
 		++maxID;
 	}
@@ -70,6 +76,17 @@ public:
 	/// </summary>
 	//void print() const;
 
+	/// <summary>
+	/// Adds a particle to the cluster.
+	/// </summary>
+	/// <remarks>
+	/// Internally, this function checks against <see cref="max_children"/> whether the maximum amount
+	///		of children has been exceeded; if so, the cluster will be divided into sub-clusters (usually 4,
+	///		see <see cref="max_children"/>
+	/// </remarks>
+	/// <param name="p">Pointer to the particle to be added</param>
+	void add_particle(const std::shared_ptr<Particle<dim>>& p);
+
 	constexpr inline bool isCluster() const { return false; }
 
 	constexpr void update_boundaries();
@@ -78,9 +95,21 @@ public:
 
 	inline const Vector<dim>& get_min_boundary() const { return local_min_boundary; }
 
+	/// <summary>
+	/// Queries whether the cluster is active
+	/// </summary>
+	inline bool is_active() { return is_active; }
+
 private:
 	static unsigned int maxID;
 	unsigned int ID; // cluster id number
+
+	static unsigned int max_children;
+
+	/// <summary>
+	/// A cluster is active if it has children and thus must be included in the computation
+	/// </summary>
+	bool is_active;
 
 	Vector<dim> local_max_boundary;
 	Vector<dim> local_min_boundary;

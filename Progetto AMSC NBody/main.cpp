@@ -32,6 +32,8 @@ unsigned int Particle<dim>::maxID = 0;
 // Must do initialisation in a source file
 template<unsigned int dim>
 unsigned int ParticleCluster<dim>::maxID = 0;
+template<unsigned int dim>
+unsigned int ParticleCluster<dim>::max_children = 8;
 
 template<unsigned int dim>
 Vector<dim> Particle<dim>::max_boundary; 
