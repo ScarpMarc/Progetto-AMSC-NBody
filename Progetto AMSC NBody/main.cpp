@@ -33,7 +33,9 @@ unsigned int Particle<dim>::maxID = 0;
 template<unsigned int dim>
 unsigned int ParticleCluster<dim>::maxID = 0;
 template<unsigned int dim>
-unsigned int ParticleCluster<dim>::max_children = 8;
+unsigned int ParticleCluster<dim>::max_children_particles = 8;
+template<unsigned int dim>
+unsigned int ParticleCluster<dim>::num_subclusters = 8;
 
 template<unsigned int dim>
 Vector<dim> Particle<dim>::max_boundary; 
