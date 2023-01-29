@@ -35,7 +35,7 @@ unsigned int ParticleCluster<dim>::maxID = 0;
 template<unsigned int dim>
 unsigned int ParticleCluster<dim>::max_children_particles = 8;
 template<unsigned int dim>
-unsigned int ParticleCluster<dim>::num_subclusters = 8;
+unsigned int ParticleCluster<dim>::num_subclusters_per_dim = 2;
 
 template<unsigned int dim>
 Vector<dim> Particle<dim>::max_boundary; 
@@ -98,13 +98,13 @@ int mainLoop()
 		JsonParser parser("");
 		parser.parse();
 
-		std::srand(std::time(NULL));
+		std::srand((unsigned int)std::time(NULL));
 
 		programme_start = time(0);
 
 		std::cout << "JSON file loaded." << std::endl;
 
-		for (int i = 0; i < total_particles; i++)
+		for (unsigned int i = 0; i < total_particles; i++)
 		{
 			Vector<DIM> position, speed, acceleration;
 			// generate mass
@@ -198,7 +198,7 @@ int mainLoop()
 	return 0;
 }
 
-int main(int argc, char **argv)
+int main()
 {
 #ifdef USE_GRAPHICS
 	use_graphics = true;
@@ -293,7 +293,7 @@ void loadParticles(std::vector<Particle<DIM>> &particles, const std::string &fil
 	}
 
 	infile.read(reinterpret_cast<char *>(&total_particles), sizeof(unsigned int));
-	for (int i = 0; i < total_particles; i++)
+	for (unsigned int i = 0; i < total_particles; i++)
 	{
 		Particle<DIM> particle;
 		particle.loadFromFile(infile);

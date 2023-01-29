@@ -124,6 +124,8 @@ public:
 	// Mass constant k
 	const double mass_constant_k = 6.673e-11;//0.001;
 
+	//void set_parent(const Particle& p) { parent = std::make_shared<Particle>(p); }
+
 protected:
 	void _updateSpeed(const unsigned int& delta_ticks);
 	void _updatePos(const unsigned int& delta_ticks);
@@ -141,6 +143,9 @@ protected:
 private:
 	static unsigned int maxID;
 	unsigned int ID; // particle id number
+
+	// HACK
+	//std::shared_ptr<Particle<dim>> parent;
 
 	// TODO Electric constant
 

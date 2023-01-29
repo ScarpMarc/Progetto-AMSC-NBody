@@ -61,6 +61,26 @@ public:
 		++maxID;
 	}
 
+	/// <summary>
+	/// Constructor that takes the parent as argument, along with the position of the will-be child within its quadrant.
+	/// </summary>
+	ParticleCluster(const ParticleCluster<dim>& parent, const unsigned int& depth,
+		const std::array<unsigned int, dim> grid_pos) : Particle<dim>(), ID(maxID), nest_depth(depth), grid_pos(grid_pos)
+	{
+		this->parent = std::make_shared<ParticleCluster>(parent);
+
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			double dim_step = (local_max_boundary[i] - local_min_boundary[i]) / (double)num_subclusters_per_dim;
+			local_max_boundary[i] = parent.get_min_boundary()[i] + (double)(grid_pos[i] + 1) * dim_step;
+			local_min_boundary[i] = parent.get_min_boundary()[i] + (double)(grid_pos[i]) * dim_step;
+		}
+
+		active = false;
+
+		++maxID;
+	}
+
 	constexpr inline size_t get_children_num() const { return children.size(); }
 
 	constexpr inline size_t get_children_num_recursive() const;
@@ -116,6 +136,19 @@ public:
 	/// </summary>
 	void remove_all_subclusters();
 
+	void set_parent(const ParticleCluster& p) { parent = std::make_shared<ParticleCluster>(p); }
+
+	/// <summary>
+	/// The "depth" of this cluster, i.e. how many level this is below the "main" cluster
+	///		that encompasses the entire field; the main cluster has depth 0.
+	/// </summary>
+	unsigned int get_nest_depth() { return nest_depth; }
+	/// <summary>
+	/// Grid position of this cluster among the children of its parent, in each component,
+	///		counted starting from the minimum.
+	/// </summary>
+	std::array<unsigned int, dim> get_grid_pos() { return grid_pos; }
+
 private:
 	static unsigned int maxID;
 	unsigned int ID; // cluster id number
@@ -130,6 +163,8 @@ private:
 	///		creating <c>log(n)</c> sub-levels; this is not going to happen in reality, and that is why we can call
 	///		the garbage collector directly.
 	/// In general, this function will be used at the start of the simulation.
+	/// Clusters are ordered by dimension: first, all Xs from small to large, then Ys and Zs.
+	///		The way they are accessed is just like a n-D array.
 	/// </remarks>
 	///<param name = "n">Amount of total children to store</param>
 	///<param name = "garbage_collect">Whether to remove unused clusters immediately</param>
@@ -139,6 +174,13 @@ private:
 	/// Creates one level of sub-clusters. The amount is specified by <see cref="num_subclusters"/>.
 	/// This will assign particles among <c>children</c> to the appropriate sub-cluster.
 	/// </summary>
+	/// <remarks>
+	/// Clusters are ordered by dimension: first, all Xs from small to large, then Ys and Zs.
+	///		The way they are accessed is just like a n-D array.
+	/// All possible sub-clusters will be created: the rationale is that this function will be 
+	///		called when there are too many particles and we need to subdivide; hence we create all
+	///		of the sub-clusters and fill them immediately.
+	/// </remarks>
 	void _create_subclusters_one_level();
 
 	/// <summary>
@@ -148,6 +190,26 @@ private:
 	/// Whether there are active children
 	/// </returns>
 	bool _check_has_active_children() const;
+
+	/// <summary>
+	/// Locates the subcluster that would take the particle, based on its position.
+	/// The cluster is not guaranteed to actually exist.
+	/// </summary>
+	/// <returns>
+	/// The subscript to the cluster in <p>children</p>
+	/// </returns>
+	unsigned int _locate_subcluster_for_particle(const std::shared_ptr<Particle<dim>>& p) const;
+
+	/// <summary>
+	/// The "depth" of this cluster, i.e. how many level this is below the "main" cluster
+	///		that encompasses the entire field; the main cluster has depth 0.
+	/// </summary>
+	unsigned int nest_depth;
+	/// <summary>
+	/// Grid position of this cluster among the children of its parent, in each component,
+	///		counted starting from the minimum.
+	/// </summary>
+	std::array<unsigned int, dim> grid_pos;
 
 	/*void _update_parent_active_children_count()
 	{
@@ -163,10 +225,10 @@ private:
 	static unsigned int max_children_particles;
 
 	/// <summary>
-	/// Amount of sub-clusters this cluster can be divided into.
-	/// MUST be a cube! We will be dividing the space into <c>num_subclusters</c>x<c>num_subclusters</c> sub-clusters.
+	/// Amount of sub-clusters per dimension this cluster can be divided into.
+	/// This simply means we will be dividing the space into <c>num_subclusters_per_dim</c>^<c>dim</c> sub-clusters.
 	/// </summary>
-	static unsigned int num_subclusters;
+	static unsigned int num_subclusters_per_dim;
 
 	/// <summary>
 	/// A cluster is active if it has children and thus must be included in the computation.
@@ -186,6 +248,10 @@ private:
 	/// <summary>
 	/// Children particles of this object. We assume that all children are either
 	///		Particles or ParticleClusters.
+	/// Clusters are ordered by dimension: first, all Xs from small to large, then Ys and Zs.
+	///		The way they are accessed is just like a n-D array.
+	/// Important assumption: if a cluster has sub-clusters, the vector is always populated with the appropriate
+	///		amount of pointers; they may be <c>nullpointer</c>s but they must exist.
 	/// </summary>
 	std::vector < std::shared_ptr<Particle<dim>>> children;
 
@@ -239,6 +305,11 @@ void ParticleCluster<dim>::add_particle(const std::shared_ptr<Particle<dim>>& p)
 			{
 				// We are already at maximum capacity -> create children
 				_create_subclusters_one_level();
+				unsigned int subscript = _locate_subcluster_for_particle(p);
+				if (children[subscript] != nullptr)
+				{
+					dynamic_cast<ParticleCluster<dim>*>(children[subscript].get())->add_particle(p);
+				}
 			}
 			else
 			{
@@ -252,24 +323,32 @@ void ParticleCluster<dim>::add_particle(const std::shared_ptr<Particle<dim>>& p)
 			if (_check_has_active_children())
 			{
 				// We have some sub-clusters that are active.
-
-				// TODO
-				// Send to appropriate child, mark active if necessary.
-				// Sub-clusters will deal with their own children amount
+				unsigned int subscript = _locate_subcluster_for_particle(p);
+				/* Check that the appropriate child exists. If it does, send the particle down;
+				*	if it does not, create it.
+				*/
+				if (children[subscript] != nullptr)
+				{
+					dynamic_cast<ParticleCluster<dim>*>(children[subscript].get())->add_particle(p);
+				}
 			}
 			else
 			{
 				/* No sub-clusters are active. This means that they store no particles, and they still exist simply because
 					the garbage collector has not been called yet.
-					We can remove them (and theur children) and add the particle to our own children.
+					We can remove them (and their children) and add the particle to our own children.
 				*/
 				remove_all_subclusters();
+				children.push_back(p);
+				//p->set_parent(this);
+				active = true;
 			}
 		}
 	}
 	else
 	{
 		children.push_back(p);
+		active = true;
 	}
 }
 
@@ -293,12 +372,102 @@ void ParticleCluster<dim>::remove_all_subclusters()
 template<unsigned int dim>
 bool ParticleCluster<dim>::_check_has_active_children() const
 {
-	bool result = false;
 	for (const std::shared_ptr<Particle<dim>>& p : children)
 	{
 		assert(p->isCluster());
 
-		result |= dynamic_cast<ParticleCluster<dim>*>(p.get())->is_active();
+		if (dynamic_cast<ParticleCluster<dim>*>(p.get())->is_active()) return true;
 	}
-	return result;
+	return false;
+}
+
+template<unsigned int dim>
+void ParticleCluster<dim>::_create_subclusters_one_level()
+{
+	/*
+		Assumption: either we have children and they are all particles, or we have no children.
+		This means that the <c>children</c> vector is either filled with at least one particle,
+			or empty.
+	*/
+#ifndef NDEBUG
+	for (const std::shared_ptr<Particle<dim>>& p : children)
+	{
+		assert(!p->isCluster());
+	}
+#endif
+	/* If vector is not empty, we must preserve the <c>Particle</c>s in it.
+	*	We can copy it regardless, and figure out later if it was empty or not
+	*/
+	std::vector < std::shared_ptr<Particle<dim>>> old = children;
+	children.clear();
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		for (unsigned int j = 0; j < num_subclusters_per_dim; ++j)
+		{
+			children.push_back(std::make_shared<ParticleCluster<dim>>(*this, nest_depth + 1, (i, j)));
+		}
+	}
+
+	// TODO optimise
+	/*
+		Add old particles to the new appropriate child
+	*/
+	for (const shared_ptr<Particle<dim>>& p : old)
+	{
+		unsigned int subscript = _locate_subcluster_for_particle(p);
+		dynamic_cast<ParticleCluster<dim>*>(children[subscript].get())->add_particle(p);
+	}
+}
+
+template<unsigned int dim>
+unsigned int ParticleCluster<dim>::_locate_subcluster_for_particle(const std::shared_ptr<Particle<dim>>& p) const
+{
+	/*
+	Check my local boundaries and assign the particle to the appropriate region
+*/
+#ifndef NDEBUG
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		assert(p->get_position()[i] >= local_min_boundary[i] && p->get_position()[i] <= local_max_boundary[i]);
+	}
+#endif
+	std::array<unsigned int, dim> candidate_grid_pos;
+	Vector cluster_size = local_max_boundary - local_min_boundary;
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		candidate_grid_pos[i] = (unsigned int)((p->get_position()[i] / cluster_size[i]) // Get number between 0 and 1
+			* num_subclusters_per_dim); // Get a number and truncate it
+	}
+
+#ifndef NDEBUG
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		assert(candidate_grid_pos[dim] > 0 && candidate_grid_pos[dim] < num_subclusters_per_dim);
+	}
+#endif
+	// Crude power function
+	unsigned int subscript = 0;
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		unsigned int mul = 1;
+		for (unsigned int j = dim - i; j < dim; ++j)
+		{
+			mul *= num_subclusters_per_dim;
+		}
+		subscript += mul * candidate_grid_pos[dim];
+	}
+
+#ifndef NDEBUG
+	unsigned int _mul = 1;
+	for (unsigned int j = 0; j < dim; ++j)
+	{
+		_mul *= num_subclusters_per_dim;
+	}
+
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		assert(subscript < _mul&& subscript < children.size());
+	}
+#endif
+	return subscript;
 }

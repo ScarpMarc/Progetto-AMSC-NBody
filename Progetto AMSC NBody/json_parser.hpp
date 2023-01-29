@@ -101,7 +101,7 @@ class JsonParser
             
             if(key.find("max_ticks") != std::string::npos)
             {
-                max_ticks = std::stoull(value);
+                max_ticks = std::stoul(value);
                 //std::cout << max_ticks << std::endl;
             }
             if(key.find("ticks_per_second") != std::string::npos)
