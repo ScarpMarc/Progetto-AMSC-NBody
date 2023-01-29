@@ -412,7 +412,7 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 	/*
 		Add old particles to the new appropriate child
 	*/
-	for (const shared_ptr<Particle<dim>>& p : old)
+	for (const std::shared_ptr<Particle<dim>>& p : old)
 	{
 		unsigned int subscript = _locate_subcluster_for_particle(p);
 		dynamic_cast<ParticleCluster<dim>*>(children[subscript].get())->add_particle(p);
