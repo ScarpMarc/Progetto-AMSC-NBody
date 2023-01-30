@@ -15,7 +15,7 @@ These can be automatically copied to the right folder with `make deploy`
 Left and right arrows to strafe left and right; up and down arrows to zoom; ESC to close the graphics window. This will halt the entire programme.
 
 # How to build 
-Skip sections 1 and 2 if you _do not_ want graphics. Alternatively, it is possible to inhibit graphics by specifying the flag `-DNO_GRAPHICS=TRUE`.
+Skip sections 1 and 2 if you _do not_ want graphics. Alternatively, it is possible to inhibit graphics by specifying the CMake flag `-DNO_GRAPHICS=TRUE`.
 
 **WARNING**: if you have installed the [mk-modules](https://github.com/elauksap/mk) and want to use the graphics, you **MUST** unload `gcc-glibc` as this interferes with the CMake routines that find OpenGL. In general, you should always refer to the latest version of CMake.
 1. Go to `glew/auto` and `make`; this will configure the appropriate dependencies. You may need to access `Makefile` and `modify PYTHON ?= python` into `PYTHON ?= python3`
