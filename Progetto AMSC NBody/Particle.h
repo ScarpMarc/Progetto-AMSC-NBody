@@ -15,7 +15,26 @@ template <unsigned int dim>
 class Particle
 {
 public:
+	Particle(
+		const unsigned int& ID,
+		Vector<dim> position,
+		Vector<dim> speed,
+		Vector<dim> acceleration,
+		double mass) :
+		ID(ID),
+		pos(position),
+		speed(speed),
+		accel(acceleration),
+		mass(mass)
+	{
+		for (unsigned int d = 0; d < dim; ++d)
+		{
+			if (max_boundary[d] < pos[d]) max_boundary[d] = pos[d];
+			if (min_boundary[d] > pos[d]) min_boundary[d] = pos[d];
+		}
 
+		++maxID;
+	}
 	/// <summary>
 	/// Constructor
 	/// </summary>
@@ -24,23 +43,12 @@ public:
 		Vector<dim> position,
 		Vector<dim> speed,
 		Vector<dim> acceleration,
-		double mass) :
-		ID(maxID),
-		pos(position),
-		speed(speed),
-		accel(acceleration),
-		mass(mass)
-	{
-		for (unsigned int d = 0; d < dim; ++d)
-		{
-			if (max_boundary[d] > pos[d]) max_boundary[d] = pos[d];
-			if (min_boundary[d] < pos[d]) min_boundary[d] = pos[d];
-		}
+		double mass) : Particle(maxID, position, speed, acceleration, mass) {}
 
-		++maxID;
-	}
+	Particle(unsigned int ID) : Particle(ID, {}, {}, {}, 0.0) {}
 
 	Particle() : Particle({}, {}, {}, 0.0) {}
+	
 
 	/// <summary>
 	/// Needed to be able to cast to ParticleCluster through smart pointers.
@@ -118,7 +126,7 @@ public:
 
 	inline static const Vector<dim>& get_global_min_boundary() { return min_boundary; }
 
-	constexpr inline bool isCluster() const { return false; }
+	virtual inline bool isCluster() const { return false; }
 
 	// TODO Set value
 	// Mass constant k
@@ -129,6 +137,8 @@ public:
 protected:
 	void _updateSpeed(const unsigned int& delta_ticks);
 	void _updatePos(const unsigned int& delta_ticks);
+
+	unsigned int ID; // particle id number
 
 	Vector<dim> pos;
 	Vector<dim> speed;
@@ -142,7 +152,6 @@ protected:
 
 private:
 	static unsigned int maxID;
-	unsigned int ID; // particle id number
 
 	// HACK
 	//std::shared_ptr<Particle<dim>> parent;

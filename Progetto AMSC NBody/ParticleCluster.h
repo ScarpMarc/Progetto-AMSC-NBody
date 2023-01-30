@@ -29,21 +29,22 @@ public:
 	/// <summary>
 	/// Default constructor which initialises all properties to 0, same as the default constructor of Particle.
 	/// </summary>
-	ParticleCluster() : Particle<dim>(), ID(maxID)
+	ParticleCluster() : Particle<dim>(max_cluster_ID), nest_depth(0), grid_pos(std::array<unsigned int, dim> {})
 	{
 		local_max_boundary = Particle<dim>::max_boundary;
 		local_min_boundary = Particle<dim>::min_boundary;
 
 		active = false;
 
-		++maxID;
+		++max_cluster_ID;
 	}
 
 	// TODO
 	/// <summary>
 	/// Constructor that takes the particle list, computes the sum of each property and initialises the relevant fields.
 	/// </summary>
-	ParticleCluster(const std::vector < std::shared_ptr<Particle<dim>>>& children) : Particle<dim>(), ID(maxID), children(children)
+	ParticleCluster(const std::vector < std::shared_ptr<Particle<dim>>>& children) : Particle<dim>(max_cluster_ID),
+		children(children), nest_depth(0), grid_pos(std::array<unsigned int, dim> {})
 	{
 		for (const std::shared_ptr<Particle<dim>>& p : children)
 		{
@@ -58,27 +59,32 @@ public:
 
 		active = true;
 
-		++maxID;
+		++max_cluster_ID;
 	}
 
 	/// <summary>
 	/// Constructor that takes the parent as argument, along with the position of the will-be child within its quadrant.
 	/// </summary>
 	ParticleCluster(const ParticleCluster<dim>& parent, const unsigned int& depth,
-		const std::array<unsigned int, dim> grid_pos) : Particle<dim>(), ID(maxID), nest_depth(depth), grid_pos(grid_pos)
+		const std::array<unsigned int, dim> grid_pos) : Particle<dim>(max_cluster_ID), nest_depth(depth), grid_pos(grid_pos)
 	{
 		this->parent = std::make_shared<ParticleCluster>(parent);
 
 		for (unsigned int i = 0; i < dim; ++i)
 		{
-			double dim_step = (local_max_boundary[i] - local_min_boundary[i]) / (double)num_subclusters_per_dim;
+			double dim_step = (parent.local_max_boundary[i] - parent.local_min_boundary[i]) / (double)num_subclusters_per_dim;
 			local_max_boundary[i] = parent.get_min_boundary()[i] + (double)(grid_pos[i] + 1) * dim_step;
 			local_min_boundary[i] = parent.get_min_boundary()[i] + (double)(grid_pos[i]) * dim_step;
 		}
 
 		active = false;
 
-		++maxID;
+		++max_cluster_ID;
+	}
+
+	~ParticleCluster()
+	{
+		parent = nullptr;
 	}
 
 	constexpr inline size_t get_children_num() const { return children.size(); }
@@ -113,7 +119,7 @@ public:
 	/// <param name="p">Pointer to the particle to be added</param>
 	void add_particle(const std::shared_ptr<Particle<dim>>& p);
 
-	constexpr inline bool isCluster() const { return false; }
+	constexpr inline bool isCluster() const { return true; }
 
 	constexpr void update_boundaries();
 
@@ -124,7 +130,7 @@ public:
 	/// <summary>
 	/// Queries whether the cluster is active
 	/// </summary>
-	inline bool is_active() { return active; }
+	inline bool is_active() const { return active; }
 
 	/// <summary>
 	/// Removes all children. Useful when garbage collecting.
@@ -136,22 +142,23 @@ public:
 	/// </summary>
 	void remove_all_subclusters();
 
-	void set_parent(const ParticleCluster& p) { parent = std::make_shared<ParticleCluster>(p); }
+	void set_parent(const ParticleCluster& p) { parent = std::make_shared<ParticleCluster<dim>>(p); }
 
 	/// <summary>
 	/// The "depth" of this cluster, i.e. how many level this is below the "main" cluster
 	///		that encompasses the entire field; the main cluster has depth 0.
 	/// </summary>
-	unsigned int get_nest_depth() { return nest_depth; }
+	unsigned int get_nest_depth() const { return nest_depth; }
 	/// <summary>
 	/// Grid position of this cluster among the children of its parent, in each component,
 	///		counted starting from the minimum.
 	/// </summary>
-	std::array<unsigned int, dim> get_grid_pos() { return grid_pos; }
+	std::array<unsigned int, dim> get_grid_pos() const { return grid_pos; }
+
+	void print_recursive() const;
 
 private:
-	static unsigned int maxID;
-	unsigned int ID; // cluster id number
+	static unsigned int max_cluster_ID;
 
 	/// <summary>
 	/// Creates sub-clusters automatically in order to accomodate <c>n</c> particles.
@@ -400,12 +407,26 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 	*/
 	std::vector < std::shared_ptr<Particle<dim>>> old = children;
 	children.clear();
+
+	// Stores modulos of each dim (needed for generation later)
+	// dim = 2 --> {2, 4}; dim = 3 --> {2, 4, 8}, etc.
+	std::array<unsigned int, dim> dim_mods;
+
+	unsigned int mul = 1;
 	for (unsigned int i = 0; i < dim; ++i)
 	{
-		for (unsigned int j = 0; j < num_subclusters_per_dim; ++j)
+		dim_mods[i] = mul;
+		mul *= num_subclusters_per_dim;
+	}
+
+	for (unsigned int i = 0; i < mul; ++i)
+	{
+		std::array<unsigned int, dim> this_iteration_ids;
+		for (unsigned int j = 0; j < dim; ++j)
 		{
-			children.push_back(std::make_shared<ParticleCluster<dim>>(*this, nest_depth + 1, (i, j)));
+			this_iteration_ids[j] = (i / dim_mods[j]) % num_subclusters_per_dim;
 		}
+		children.push_back(std::make_shared<ParticleCluster<dim>>(*this, nest_depth + 1, this_iteration_ids));
 	}
 
 	// TODO optimise
@@ -435,14 +456,15 @@ unsigned int ParticleCluster<dim>::_locate_subcluster_for_particle(const std::sh
 	Vector cluster_size = local_max_boundary - local_min_boundary;
 	for (unsigned int i = 0; i < dim; ++i)
 	{
-		candidate_grid_pos[i] = (unsigned int)((p->get_position()[i] / cluster_size[i]) // Get number between 0 and 1
-			* num_subclusters_per_dim); // Get a number and truncate it
+		double step0 = ((p->get_position()[i] - local_min_boundary[i]) / cluster_size[i]) // Get number between 0 and 1
+			* num_subclusters_per_dim;
+		candidate_grid_pos[i] = (unsigned int)(step0); // Get a number and truncate it
 	}
 
 #ifndef NDEBUG
 	for (unsigned int i = 0; i < dim; ++i)
 	{
-		assert(candidate_grid_pos[dim] > 0 && candidate_grid_pos[dim] < num_subclusters_per_dim);
+		assert(candidate_grid_pos[i] >= 0 && candidate_grid_pos[i] < num_subclusters_per_dim);
 	}
 #endif
 	// Crude power function
@@ -454,7 +476,7 @@ unsigned int ParticleCluster<dim>::_locate_subcluster_for_particle(const std::sh
 		{
 			mul *= num_subclusters_per_dim;
 		}
-		subscript += mul * candidate_grid_pos[dim];
+		subscript += mul * candidate_grid_pos[i];
 	}
 
 #ifndef NDEBUG
@@ -470,4 +492,34 @@ unsigned int ParticleCluster<dim>::_locate_subcluster_for_particle(const std::sh
 	}
 #endif
 	return subscript;
+}
+
+
+template<unsigned int dim>
+void ParticleCluster<dim>::print_recursive() const
+{
+	for (unsigned int i = 0; i < nest_depth; ++i) std::cout << "\t";
+	std::cout << "Cluster - ID " << this->get_particle_id() << ", " << (active ? "ACTIVE" : "INACTIVE") << ", ";
+
+	if (children.size() > 0)
+	{
+		std::cout << children.size() << (children.size() > 1 ? " children." : " child.") << std::endl;
+		for (const std::shared_ptr<Particle<dim>>& p : children)
+		{
+			if (p->isCluster())
+			{
+				dynamic_cast<ParticleCluster<dim>*>(p.get())->print_recursive();
+			}
+			else
+			{
+				for (unsigned int i = 0; i < nest_depth + 1; ++i) std::cout << "\t";
+				std::cout << "Particle ID " << p->get_particle_id() << std::endl;
+			}
+		}
+	}
+	else
+	{
+		for (unsigned int i = 0; i < nest_depth; ++i) std::cout << "\t";
+		std::cout << "no children." << std::endl;
+	}
 }
