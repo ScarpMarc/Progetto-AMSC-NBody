@@ -136,7 +136,7 @@ int mainLoop()
 	auto clustering_duration = chrono::duration_cast<chrono::microseconds>(clustering_end - clustering_start);
 	cout << "Duration of clustering process: " << clustering_duration.count() << "us" << endl;
 	cout << "There are " << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active clusters." << endl;
-	cout << "There are " << main_cluster.get_children_clusters_num() + 1 << " clusters in total." << endl;
+	cout << "There are " << main_cluster.get_children_clusters_num_recursive() + 1 << " clusters in total." << endl;
 
 	/*Vector<DIM> temp;
 	unsigned int time(0);

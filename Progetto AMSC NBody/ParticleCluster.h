@@ -91,9 +91,11 @@ public:
 
 	constexpr inline size_t get_children_clusters_num() const { return children_clusters.size(); }
 
-	unsigned int get_children_clusters_num_active_recursive() const;
+	size_t get_children_clusters_num_recursive() const;
 
-	constexpr inline size_t get_children_particle_num_recursive() const;
+	size_t get_children_clusters_num_active_recursive() const;
+
+	size_t get_children_particle_num_recursive() const;
 
 	// Methods that calculate speed, acceleration, update force... and all getters are those of the base class
 
@@ -641,7 +643,7 @@ void ParticleCluster<dim>::print_recursive() const
 }
 
 template <unsigned int dim>
-unsigned int ParticleCluster<dim>::get_children_clusters_num_active_recursive() const
+size_t ParticleCluster<dim>::get_children_clusters_num_active_recursive() const
 {
 	unsigned int output = 0;
 	if (children_clusters.size() > 0)
@@ -653,6 +655,22 @@ unsigned int ParticleCluster<dim>::get_children_clusters_num_active_recursive() 
 			{
 				p.second.get_children_clusters_num_active_recursive();
 			}
+		}
+	}
+	return output;
+}
+
+template <unsigned int dim>
+size_t ParticleCluster<dim>::get_children_clusters_num_recursive() const
+{
+	unsigned int output = 0;
+	if (children_clusters.size() > 0)
+	{
+		for (const auto& p : children_clusters)
+		{
+			++output;
+
+			p.second.get_children_clusters_num_recursive();
 		}
 	}
 	return output;
