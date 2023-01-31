@@ -137,6 +137,22 @@ int mainLoop()
 	cout << "Duration of clustering process: " << clustering_duration.count() << "us" << endl;
 	cout << "There are " << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active clusters." << endl;
 	cout << "There are " << main_cluster.get_children_clusters_num_recursive() + 1 << " clusters in total." << endl;
+	cout << "There are " << main_cluster.get_children_particle_num_recursive() << " particles in total." << endl;
+
+
+	auto gcol_start = chrono::high_resolution_clock::now();
+
+	main_cluster.garbage_collect();
+
+	auto gcol_end = chrono::high_resolution_clock::now();
+
+	//main_cluster.print_recursive();
+
+	auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
+	cout << "Duration of garbage-collecting process: " << clustering_duration.count() << "us" << endl;
+	cout << "There are " << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active clusters." << endl;
+	cout << "There are " << main_cluster.get_children_clusters_num_recursive() + 1 << " clusters in total." << endl;
+	cout << "There are " << main_cluster.get_children_particle_num_recursive() << " particles in total." << endl;
 
 	/*Vector<DIM> temp;
 	unsigned int time(0);
