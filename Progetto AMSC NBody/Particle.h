@@ -16,7 +16,7 @@ template <unsigned int dim>
 class Particle
 {
 public:
-	Particle(
+	explicit Particle(
 		const unsigned int& ID,
 		Vector<dim> position,
 		Vector<dim> speed,
@@ -40,15 +40,15 @@ public:
 	/// Constructor
 	/// </summary>
 	/// <param name =
-	Particle(
+	explicit Particle(
 		Vector<dim> position,
 		Vector<dim> speed,
 		Vector<dim> acceleration,
 		double mass) : Particle(maxID, position, speed, acceleration, mass) {}
 
-	Particle(unsigned int ID) : Particle(ID, {}, {}, {}, 0.0) {}
+	explicit Particle(unsigned int ID) : Particle(ID, {}, {}, {}, 0.0) {}
 
-	Particle() : Particle({}, {}, {}, 0.0) {}
+	explicit Particle() : Particle({}, {}, {}, 0.0) {}
 	
 
 	/// <summary>
@@ -163,7 +163,7 @@ private:
 };
 
 extern std::vector<Particle<DIM>> global_particles;
-#pragma omp declare reduction (VectorSum : Vector<dim> : omp_out = omp_out + omp_in) initializer (omp_priv=Vector<dim>())
+#pragma omp declare reduction (VectorSum : Vector<DIM> : omp_out = omp_out + omp_in) initializer (omp_priv=Vector<DIM>())
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
