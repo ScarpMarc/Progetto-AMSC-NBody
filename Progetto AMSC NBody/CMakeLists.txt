@@ -11,7 +11,7 @@ endif()
 add_executable(NBody ${sources})
 
 target_include_directories(NBody PUBLIC .)
-set_property(TARGET NBody PROPERTY CXX_STANDARD 17)
+set_property(TARGET NBody PROPERTY CXX_STANDARD 20)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)

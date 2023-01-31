@@ -154,7 +154,6 @@ public:
 	/// <returns>TRUE if the cluster contains particles; FALSE if it contains other clusters.</returns>
 	bool contains_particles() const
 	{
-		assert(children_clusters.size() == 0);
 		return has_particles;
 	}
 
@@ -391,19 +390,17 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 	}
 	else
 	{
-		if (contains_particles() || !_check_has_active_subclusters())
+		if (contains_particles())
 		{
-			/* All children are particles OR we have sub-clusters, but they are all inactive.
-				If no sub-clusters are active, this means that they store no particles, and they still exist simply because
-				the garbage collector has not been called yet.
-				We can remove them (and their children) and add the particle to our own children.
+			/*
+				All children are particles.
 			*/
 			if (children_particles.size() >= max_children_particles)
 			{
 				// We are already at maximum capacity -> create children
 				_create_subclusters_one_level();
 				// Clusters created, particles reassigned -> add p
-				unsigned int subscript = _locate_subcluster_for_particle(p);
+				unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
 				// WARNING we assume that each child exists since we just created them all. Problems may arise when multithreading...
 				assert(children_clusters.contains(subscript));
 				children_clusters[subscript].add_particle(p);
@@ -411,7 +408,6 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 			}
 			else
 			{
-				remove_all_subclusters_recursive();
 				children_particles.insert(p);
 				active = true;
 				has_particles = true;
@@ -420,14 +416,29 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 		else
 		{
 			// All children are other clusters
-			unsigned int subscript = _locate_subcluster_for_particle(p);
-			if (!children_clusters.contains(subscript))
+			if (!_check_has_active_subclusters())
 			{
-				__create_subcluster_at(_locate_quadrant_for_particle(p));
+				/*
+				If no sub-clusters are active, this means that they store no particles, and they still exist simply because
+					the garbage collector has not been called yet.
+				We can remove them (and their children) and add the particle to our own children.
+				*/
+				remove_all_subclusters_recursive();
+				children_particles.insert(p);
+				active = true;
+				has_particles = true;
 			}
-			children_clusters[subscript].add_particle(p);
+			else
+			{
+				unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
+				if (!children_clusters.contains(subscript))
+				{
+					__create_subcluster_at(_locate_quadrant_for_particle(_get_particle_global(p)));
+				}
+				children_clusters[subscript].add_particle(p);
 
-			assert(!has_particles);
+				assert(!has_particles);
+			}
 		}
 	}
 }
@@ -440,7 +451,7 @@ void ParticleCluster<dim>::remove_all_subclusters_recursive()
 		particle should get caught in the process.
 	*/
 	assert(get_children_particle_num() == 0);
-	assert(!is_active());
+	//assert(!is_active());
 	for (auto& p : children_clusters)
 	{
 		assert(p.second.get_children_particle_num() == 0);
@@ -499,9 +510,11 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 	*/
 	for (const unsigned int& p : children_particles)
 	{
-		unsigned int subscript = _locate_subcluster_for_particle(p);
+		unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
 		children_clusters[subscript].add_particle(p);
 	}
+	// Delete old ones.
+	children_particles.clear();
 }
 
 template <unsigned int dim>
@@ -517,8 +530,9 @@ void ParticleCluster<dim>::__create_subcluster_at(const std::array<unsigned int,
 #endif
 	// Create new map entry. Some serious dark magic here
 	unsigned int newdepth = nest_depth + 1;
-	children_clusters.emplace(std::piecewise_construct, 
-		std::forward_as_tuple(_get_cluster_subscript(location)), 
+	unsigned int subscript = _get_cluster_subscript(location);
+	children_clusters.emplace(std::piecewise_construct,
+		std::forward_as_tuple(subscript),
 		std::forward_as_tuple(this, newdepth, location));
 }
 
@@ -544,7 +558,14 @@ unsigned int ParticleCluster<dim>::_get_cluster_subscript(const std::array<unsig
 		}
 		subscript += mul * location[i];
 	}
-	assert(subscript < num_subclusters_per_dim);
+#ifndef NDEBUG
+	unsigned int mul = 1;
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		mul *= num_subclusters_per_dim;
+	}
+	assert(subscript < mul);
+#endif
 
 	return subscript;
 }
