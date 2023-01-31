@@ -648,9 +648,9 @@ size_t ParticleCluster<dim>::get_children_clusters_num_active_recursive() const
 	unsigned int output = 0;
 	for (const auto& p : children_clusters)
 	{
-		++output;
 		if (p.second.is_active())
 		{
+			++output;
 			output += p.second.get_children_clusters_num_active_recursive();
 		}
 	}
