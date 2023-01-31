@@ -52,8 +52,7 @@ time_t programme_start;
 std::string profiling_folder = "";
 std::string profiling_file_name = "Profiler_.txt";
 
-// vector of Particle objects
-std::vector<Particle<DIM>> particles;
+std::vector<Particle<DIM>> global_particles;
 
 void loadParticles(std::vector<Particle<DIM>> &, const std::string &);
 
@@ -89,7 +88,7 @@ int mainLoop()
 	if (load_particles_from_file)
 	{
 		std::cout << "Attempting to load particle file..." << std::endl;
-		loadParticles(particles, load_filename);
+		loadParticles(global_particles, load_filename);
 		std::cout << "Particle file loaded." << std::endl;
 	}
 	else
@@ -116,7 +115,7 @@ int mainLoop()
 			acceleration = Vector<DIM>({0.0, 0.0, 0.0});
 
 			// generate particle
-			particles.emplace_back(position, speed, acceleration, mass);
+			global_particles.emplace_back(position, speed, acceleration, mass);
 		}
 
 		std::cout << "Particles generated." << std::endl;
@@ -127,7 +126,7 @@ int mainLoop()
 	ParticleCluster<DIM> main_cluster;
 	for (unsigned int i = 0; i < total_particles; i++)
 	{
-		main_cluster.add_particle(std::make_shared<Particle<DIM>>(particles[i]));
+		main_cluster.add_particle(i);
 	}
 
 	auto clustering_end = chrono::high_resolution_clock::now();
@@ -136,8 +135,8 @@ int mainLoop()
 
 	auto clustering_duration = chrono::duration_cast<chrono::microseconds>(clustering_end - clustering_start);
 	cout << "Duration of clustering process: " << clustering_duration.count() << "us" << endl;
-	cout << "There are " << main_cluster.get_num_active_children() + 1 << " active clusters." << endl;
-	cout << "There are " << main_cluster.get_num_subclusters() + 1 << " clusters in total." << endl;
+	cout << "There are " << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active clusters." << endl;
+	cout << "There are " << main_cluster.get_children_clusters_num() + 1 << " clusters in total." << endl;
 
 	/*Vector<DIM> temp;
 	unsigned int time(0);
@@ -260,7 +259,7 @@ int main()
 #ifdef USE_GRAPHICS
 	if (use_graphics)
 	{
-		drawParticles(&window, &particles);
+		drawParticles(&window, &global_particles);
 		// std::thread t1(&drawParticles<DIM>, &window, &particles);
 
 		glfwTerminate();

@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <cmath>
 #include <fstream>
+#include <vector>
 
 /// <summary>
 /// Represents the basic particles that interact in the world
@@ -160,6 +161,9 @@ private:
 
 	// TODO Magnetic constant (?)
 };
+
+extern std::vector<Particle<DIM>> global_particles;
+#pragma omp declare reduction (VectorSum : Vector<dim> : omp_out = omp_out + omp_in) initializer (omp_priv=Vector<dim>())
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

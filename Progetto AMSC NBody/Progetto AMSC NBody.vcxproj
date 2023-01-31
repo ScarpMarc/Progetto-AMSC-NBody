@@ -138,7 +138,7 @@
       <OpenMPSupport>true</OpenMPSupport>
       <Optimization>Full</Optimization>
       <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
-      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
