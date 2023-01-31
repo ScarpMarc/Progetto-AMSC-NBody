@@ -131,7 +131,7 @@ int mainLoop()
 
 	auto clustering_end = chrono::high_resolution_clock::now();
 
-	main_cluster.print_recursive();
+	//main_cluster.print_recursive();
 
 	auto clustering_duration = chrono::duration_cast<chrono::microseconds>(clustering_end - clustering_start);
 	cout << "Duration of clustering process: " << clustering_duration.count() << "us" << endl;
@@ -149,7 +149,7 @@ int mainLoop()
 	//main_cluster.print_recursive();
 
 	auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
-	cout << "Duration of garbage-collecting process: " << clustering_duration.count() << "us" << endl;
+	cout << "Duration of garbage-collecting process: " << gcol_duration.count() << "us" << endl;
 	cout << "There are " << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active clusters." << endl;
 	cout << "There are " << main_cluster.get_children_clusters_num_recursive() + 1 << " clusters in total." << endl;
 	cout << "There are " << main_cluster.get_children_particle_num_recursive() << " particles in total." << endl;
