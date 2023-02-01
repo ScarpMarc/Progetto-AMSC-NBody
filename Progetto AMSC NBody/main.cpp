@@ -131,7 +131,7 @@ int mainLoop()
 
 	auto clustering_end = chrono::high_resolution_clock::now();
 
-	//main_cluster.print_recursive();
+	// main_cluster.print_recursive();
 
 	auto clustering_duration = chrono::duration_cast<chrono::microseconds>(clustering_end - clustering_start);
 	cout << "Duration of clustering process: " << clustering_duration.count() << "us" << endl;
@@ -178,13 +178,24 @@ int mainLoop()
 
 			auto gcol_end = chrono::high_resolution_clock::now();
 
-			//main_cluster.print_recursive();
+			// main_cluster.print_recursive();
 
 			auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
-			cout << "Duration of garbage-collecting process: " << gcol_duration.count() << "us" << endl;
-			cout << "There are " << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active clusters." << endl;
-			cout << "There are " << main_cluster.get_children_clusters_num_recursive() + 1 << " clusters in total." << endl;
-			cout << "Duration of update process: " << update_duration_this_tick.count()<<"us" << endl << endl;
+			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us"
+				 << " -- Update: " << update_duration_this_tick.count() << "us" << endl;
+			cout << "CLUSTERS: " << main_cluster.get_children_clusters_num_recursive() + 1 << " (" << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active)" << endl;
+			cout << "Current boundaries: MIN: ";
+			for (unsigned int i = 0; i < DIM; ++i)
+			{
+				cout << Particle<DIM>::get_global_min_boundary()[i] << " ";
+			}
+			cout << ", MAX: ";
+			for (unsigned int i = 0; i < DIM; ++i)
+			{
+				cout << Particle<DIM>::get_global_max_boundary()[i] << " ";
+			}
+			cout << endl
+				 << endl;
 		}
 
 		if (!(time % save_status_interval))

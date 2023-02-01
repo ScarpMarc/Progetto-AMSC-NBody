@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <set>
 #include <map>
+#include <iterator>
 /*
 	TODO
 	Update clusters at each frame
@@ -481,9 +482,10 @@ void ParticleCluster<dim>::_update_boundaries_recursive()
 	}
 	// OMP
 #pragma omp parallel for
-	for (auto& c : children_clusters)
+	for(unsigned int i = 0; i < children_clusters.size(); ++i)
 	{
-		c.second._update_boundaries_recursive();
+		auto c = std::next(children_clusters.begin(), i);
+		c->second._update_boundaries_recursive();
 	}
 }
 
@@ -855,9 +857,10 @@ void ParticleCluster<dim>::_calc_center_of_mass()
 	Vector<dim> temp_pos = {};
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_pos)
-	for (const unsigned int i : children_particles)
+	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
-		temp_pos += _get_particle_global(i).get_position() * _get_particle_global(i).getMass() / this->mass;
+		auto val = std::next(children_particles.begin(), i);
+		temp_pos += _get_particle_global(*val).get_position() * _get_particle_global(*val).getMass() / this->mass;
 	}
 	this->pos = temp_pos;
 }
@@ -869,9 +872,10 @@ void ParticleCluster<dim>::_calc_speed()
 	// Reduction declared in Particle.h
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_speed)
-	for (const unsigned int i : children_particles)
+	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
-		temp_speed += _get_particle_global(i).get_speed();
+		auto val = std::next(children_particles.begin(), i);
+		temp_speed += _get_particle_global(*val).get_speed();
 	}
 	this->speed = temp_speed;
 }
@@ -883,9 +887,10 @@ void ParticleCluster<dim>::_calc_acc()
 	// Reduction declared in Particle.h
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_accel)
-	for (const unsigned int i : children_particles)
+	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
-		temp_accel += _get_particle_global(i).get_acc();
+		auto val = std::next(children_particles.begin(), i);
+		temp_accel += _get_particle_global(*val).get_acc();
 	}
 	this->accel = temp_accel;
 }
@@ -897,9 +902,10 @@ void ParticleCluster<dim>::_calc_mass()
 	// Reduction declared in Particle.h
 #pragma omp parallel for reduction(+ \
 								   : temp_mass)
-	for (const unsigned int i : children_particles)
+	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
-		temp_mass += _get_particle_global(i).getMass();
+		auto val = std::next(children_particles.begin(), i);
+		temp_mass += _get_particle_global(*val).getMass();
 	}
 	this->mass = temp_mass;
 }
@@ -909,15 +915,16 @@ void ParticleCluster<dim>::garbage_collect()
 {
 	// We can use OMP since no two clusters share the same parent.
 #pragma omp parallel for
-	for (auto& c : children_clusters)
+for(unsigned int i = 0; i < children_clusters.size(); ++i)
 	{
-		if (!c.second.is_active())
+		auto c = std::next(children_clusters.begin(), i);
+		if (!c->second.is_active())
 		{
-			c.second.remove_all_subclusters_recursive();
+			c->second.remove_all_subclusters_recursive();
 		}
 		else
 		{
-			c.second.garbage_collect();
+			c->second.garbage_collect();
 		}
 	}
 

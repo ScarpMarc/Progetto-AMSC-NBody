@@ -163,10 +163,6 @@ private:
 };
 
 extern std::vector<Particle<DIM>> global_particles;
-typedef Particle<DIM> Particle_I;
-#ifndef _WIN32 // VS supports only OpenMP 2.0 and a few OMP3.0 directives. This is unsupported.
-#pragma omp declare reduction (VectorSum : Particle_I : omp_out = omp_out + omp_in) initializer (omp_priv=Particle_I())
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,7 +206,7 @@ const Vector<dim>& Particle<dim>::calcNewPosition(const unsigned int& delta_tick
 template<unsigned int dim>
 void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
 {
-	for (int i = 0; i < dim; ++i)
+	for (unsigned int i = 0; i < dim; ++i)
 	{
 		accel[i] = resulting_force[i] / mass;
 	}
@@ -219,7 +215,7 @@ void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
 template<unsigned int dim>
 void Particle<dim>::_updateSpeed(const unsigned int& delta_ticks)
 {
-	for (int i = 0; i < dim; ++i)
+	for (unsigned int i = 0; i < dim; ++i)
 	{
 		speed[i] += accel[i] * ((double)delta_ticks / ticks_per_second);
 	}
@@ -262,7 +258,7 @@ template<unsigned int dim>
 Vector<dim> Particle<dim>::calcDistance(const Particle<dim>& other) const
 {
 	Vector<dim> displacement = Vector<dim>();
-	for (int i = 0; i < dim; ++i)
+	for (unsigned int i = 0; i < dim; ++i)
 	{
 		displacement[i] = other.pos[i] - pos[i];
 	}
