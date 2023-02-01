@@ -108,5 +108,12 @@
     <None Include="..\Resources\vertexShader.vertexshader">
       <Filter>File di risorse</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
+    <None Include="..\Resources\simple_fragmentshader.fragmentshader">
+      <Filter>File di risorse</Filter>
+    </None>
+    <None Include="..\Resources\simple_vertexshader.vertexshader">
+      <Filter>File di risorse</Filter>
+    </None>
   </ItemGroup>
 </Project>

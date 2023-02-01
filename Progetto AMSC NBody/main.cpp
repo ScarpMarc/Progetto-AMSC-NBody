@@ -130,25 +130,54 @@ int mainLoop()
 	// UPDATE SECTION
 	for (time = 0; time < max_ticks; ++time)
 	{
-		if (!(time % (max_ticks / 100)))
+		if (!(time % (max_ticks / 10)))
 		{
 			cout << "Iteration " << std::setw(6) << time << " (simulation seconds: " << std::setw(4) << (double)(time + 1) / ticks_per_second << ")";
 		}
 
 		std::chrono::microseconds matrixComp_duration_this_tick;
 		auto matrixComp_start = chrono::high_resolution_clock::now();
-
-		do_simulation_step(particles, 1);
+		//main_cluster.print_recursive();
+		do_simulation_step(global_particles, 1);
 
 		// compute forces
 		auto matrixComp_end = chrono::high_resolution_clock::now();
 		matrixComp_duration_this_tick = chrono::duration_cast<chrono::microseconds>(matrixComp_end - matrixComp_start);
 		matrixComp_mean_duration += matrixComp_duration_this_tick.count();
 
-		if (!(time % (max_ticks / 100)))
+		std::chrono::microseconds update_duration_this_tick;
+		auto update_start = chrono::high_resolution_clock::now();
+		//main_cluster.TEST_update();
+		auto update_end = chrono::high_resolution_clock::now();
+		update_duration_this_tick = chrono::duration_cast<chrono::microseconds>(update_end - update_start);
+
+		if (!(time % (max_ticks / 10)))
 		{
 			cout << " --- Execution time: " << std::setw(15) << matrixComp_duration_this_tick.count() << " us";
 			cout << endl;
+
+			
+			cout << "CLUSTERS: " << main_cluster.get_children_clusters_num_recursive() + 1 << " (" << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active)" << endl;
+			auto gcol_start = chrono::high_resolution_clock::now();
+
+			main_cluster.garbage_collect();
+
+			auto gcol_end = chrono::high_resolution_clock::now();
+			cout << "Current boundaries: MIN: ";
+			auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
+			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us"
+				 << " -- Update: " << update_duration_this_tick.count() << "us" << endl;
+			for (unsigned int i = 0; i < DIM; ++i)
+			{
+				cout << Particle<DIM>::get_global_min_boundary()[i] << " ";
+			}
+			cout << ", MAX: ";
+			for (unsigned int i = 0; i < DIM; ++i)
+			{
+				cout << Particle<DIM>::get_global_max_boundary()[i] << " ";
+			}
+			cout << endl
+				 << endl;
 		}
 
 		if (!(time % save_status_interval))

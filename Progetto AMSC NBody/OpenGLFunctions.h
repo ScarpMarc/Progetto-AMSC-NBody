@@ -7,6 +7,7 @@
 // #include <memory>
 
 #include "Particle.h"
+#include "ParticleCluster.h"
 #include "shader.h"
 #include "Constants.h"
 #include "Controls.h"
@@ -64,7 +65,7 @@ void create_cube(const Vector<dim>& m, const Vector<dim>& M, GLfloat* out_buffer
 	mx,My,mz,Mx,My,mz,Mx,My,Mz // 11
 	};
 
-	memcpy(out_buffer_data, temp_arr, 12 * 3 * 3 * sizeof(GLfloat));
+	memcpy(out_buffer_data, temp_arr, sizeof(temp_arr));
 }
 
 template <unsigned int dim>
@@ -88,15 +89,16 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 	glBindVertexArray(VertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders("vertexShader.vertexshader", "fragmentShader.fragmentshader");
+	GLuint programID_main = LoadShaders("vertexShader.vertexshader", "fragmentShader.fragmentshader");
+	GLuint programID_simple = LoadShaders("simple_vertexshader.vertexshader", "simple_fragmentshader.fragmentshader");
 
 	// Vertex shader
-	GLuint CameraRight_worldspace_ID = glGetUniformLocation(programID, "CameraRight_worldspace");
-	GLuint CameraUp_worldspace_ID = glGetUniformLocation(programID, "CameraUp_worldspace");
-	GLuint ViewProjMatrixID = glGetUniformLocation(programID, "VP");
+	GLuint CameraRight_worldspace_ID = glGetUniformLocation(programID_main, "CameraRight_worldspace");
+	GLuint CameraUp_worldspace_ID = glGetUniformLocation(programID_main, "CameraUp_worldspace");
+	GLuint ViewProjMatrixID = glGetUniformLocation(programID_main, "VP");
 
 	// fragment shader
-	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
+	GLuint TextureID = glGetUniformLocation(programID_main, "myTextureSampler");
 
 	GLuint Texture = loadDDS("particle.DDS");
 
@@ -119,6 +121,11 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 		0.5f,
 		0.0f,
 	};
+
+	GLfloat* boundary_vertices = (GLfloat*)malloc(12 * 3 * 3 * sizeof(GLfloat)); // 12 triangles, 3 vertices per triangle, 3 coords per vertex
+
+	// Field boundaries
+	create_cube(Particle<dim>::get_global_max_boundary(), Particle<dim>::get_global_min_boundary(), boundary_vertices);
 
 	GLuint billboard_vertex_buffer;
 	glGenBuffers(1, &billboard_vertex_buffer);
@@ -144,9 +151,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 	glGenBuffers(1, &global_boundaries_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, global_boundaries_buffer);
 	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-	glBufferData(GL_ARRAY_BUFFER, 12 * 3 * 3 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Should be 12 triangles per one cube
-
-	GLfloat* boundary_vertices = (GLfloat*)malloc(12 * 3 * 3 * sizeof(GLfloat)); // 12 triangles, 3 vertices per triangle, 3 coords per vertex
+	glBufferData(GL_ARRAY_BUFFER, sizeof(boundary_vertices), boundary_vertices, GL_STATIC_DRAW); // Should be 12 triangles per one cube
 
 	do
 	{
@@ -204,14 +209,13 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 		glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
 
 		glBindBuffer(GL_ARRAY_BUFFER, global_boundaries_buffer);
-		glBufferData(GL_ARRAY_BUFFER, 12 * 3 * 3 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, 12 * 3 * 3 * sizeof(GLubyte), boundary_vertices);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(boundary_vertices), boundary_vertices, GL_STATIC_DRAW);
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Use our shader
-		glUseProgram(programID);
+		glUseProgram(programID_main);
 
 		// Bind our texture in Texture Unit 0
 		glActiveTexture(GL_TEXTURE0);
@@ -281,10 +285,12 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
 
+		glUseProgram(programID_simple);
+
 		// Draw boundaries
 		// 4th attribute buffer : cube vertices
 		glEnableVertexAttribArray(3);
-		glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, global_boundaries_buffer);
 		glVertexAttribPointer(
 			0,		  // attribute. No particular reason for 0, but must match the layout in the shader.
 			3,		  // size
@@ -294,8 +300,8 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 			(void*)0 // array buffer offset
 		);
 
-		glVertexAttribDivisor(0, 0);
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 12);
+		//glVertexAttribDivisor(3, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 12*3);
 		
 		glDisableVertexAttribArray(3);
 
@@ -312,7 +318,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 	glDeleteBuffers(1, &particles_position_buffer);
 	glDeleteBuffers(1, &billboard_vertex_buffer);
 	glDeleteBuffers(1, &global_boundaries_buffer);
-	glDeleteProgram(programID);
+	glDeleteProgram(programID_main);
 	glDeleteTextures(1, &Texture);
 	glDeleteVertexArrays(1, &VertexArrayID);
 
