@@ -172,19 +172,18 @@ int mainLoop()
 		{
 			cout << " --- Execution time: " << std::setw(15) << matrixComp_duration_this_tick.count() << " us";
 			cout << endl;
+
+			// main_cluster.print_recursive();
+			cout << "CLUSTERS: " << main_cluster.get_children_clusters_num_recursive() + 1 << " (" << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active)" << endl;
 			auto gcol_start = chrono::high_resolution_clock::now();
 
 			main_cluster.garbage_collect();
 
 			auto gcol_end = chrono::high_resolution_clock::now();
-
-			// main_cluster.print_recursive();
-
+			cout << "Current boundaries: MIN: ";
 			auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
 			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us"
 				 << " -- Update: " << update_duration_this_tick.count() << "us" << endl;
-			cout << "CLUSTERS: " << main_cluster.get_children_clusters_num_recursive() + 1 << " (" << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active)" << endl;
-			cout << "Current boundaries: MIN: ";
 			for (unsigned int i = 0; i < DIM; ++i)
 			{
 				cout << Particle<DIM>::get_global_min_boundary()[i] << " ";
