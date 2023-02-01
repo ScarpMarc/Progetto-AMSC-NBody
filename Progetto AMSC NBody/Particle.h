@@ -163,8 +163,9 @@ private:
 };
 
 extern std::vector<Particle<DIM>> global_particles;
+typedef Particle<DIM> Particle_I;
 #ifndef _WIN32 // VS supports only OpenMP 2.0 and a few OMP3.0 directives. This is unsupported.
-#pragma omp declare reduction (VectorSum : Vector<DIM> : omp_out = omp_out + omp_in) initializer (omp_priv=Vector<DIM>())
+#pragma omp declare reduction (VectorSum : Particle_I : omp_out = omp_out + omp_in) initializer (omp_priv=Particle_I())
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

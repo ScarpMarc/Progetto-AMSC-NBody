@@ -32,8 +32,9 @@ public:
 	ParticleCluster() : Particle<dim>(max_cluster_ID), nest_depth(0), grid_pos(std::array<unsigned int, dim>{}), last_boundary_update(0),
 		parent(nullptr), has_particles(false)
 	{
-		local_max_boundary = Particle<dim>::max_boundary;
-		local_min_boundary = Particle<dim>::min_boundary;
+		// Brutal hack to avoid having particles exactly on the edge
+		local_max_boundary = Particle<dim>::max_boundary + Particle<dim>::max_boundary * .01;
+		local_min_boundary = Particle<dim>::min_boundary + Particle<dim>::min_boundary * .01;
 
 		active = false;
 
@@ -96,6 +97,13 @@ public:
 	size_t get_children_clusters_num_active_recursive() const;
 
 	size_t get_children_particle_num_recursive() const;
+
+	void TEST_update() 
+	{ 
+		_update_boundaries_recursive();
+		_check_particles();
+		_update_physics();
+	}
 
 	// Methods that calculate speed, acceleration, update force... and all getters are those of the base class
 
@@ -191,7 +199,7 @@ private:
 
 	/// <summary>
 	/// Used to check whether all particles are within boundaries, after calling <link cref="update_boundaries_recursive()"/>
-	/// If not (they have moved),
+	/// If not (they have moved), we relocate them.
 	/// </summary>
 	void _check_particles();
 
@@ -787,7 +795,7 @@ void ParticleCluster<dim>::print_recursive() const
 template <unsigned int dim>
 size_t ParticleCluster<dim>::get_children_clusters_num_active_recursive() const
 {
-	unsigned int output = 0;
+	size_t output = 0;
 	for (const auto& p : children_clusters)
 	{
 		if (p.second.is_active())
@@ -802,7 +810,7 @@ size_t ParticleCluster<dim>::get_children_clusters_num_active_recursive() const
 template <unsigned int dim>
 size_t ParticleCluster<dim>::get_children_clusters_num_recursive() const
 {
-	unsigned int output = 0;
+	size_t output = 0;
 	for (const auto& p : children_clusters)
 	{
 		++output;
