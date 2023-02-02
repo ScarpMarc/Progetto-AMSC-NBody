@@ -432,31 +432,30 @@ void ParticleCluster<dim>::relocate_particle(const unsigned int& p)
 template <unsigned int dim>
 void ParticleCluster<dim>::_check_particles_recursive()
 {
-//#pragma omp single
+	for (auto& c : children_clusters)
+	{
+		c.second._check_particles_recursive();
+	}
+
+	//#pragma omp single
 	for (auto it = children_particles.begin(); it != children_particles.end();)
 	{
 		bool removed = false;
-		const Particle<dim>& ref = _get_particle_global(*it);
 		for (unsigned int j = 0; j < dim; ++j)
 		{
 			// If particle
-			if (ref.get_position()[j] > local_max_boundary[j] || ref.get_position()[j] < local_min_boundary[j])
+			if (_get_particle_global(*it).get_position()[j] > local_max_boundary[j] || _get_particle_global(*it).get_position()[j] < local_min_boundary[j])
 			{
 				// relocate
-				unsigned int old_value = *it;
-				it = children_particles.erase(it);
-				parent->relocate_particle(old_value);
+				parent->relocate_particle(*it);
 				removed = true;
 				break;
 			}
 		}
 		if (!removed)
 			++it;
-	}
-
-	for (auto& c : children_clusters)
-	{
-		c.second._check_particles_recursive();
+		else
+			it = children_particles.erase(it);
 	}
 }
 
@@ -587,18 +586,17 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 					We only check for this condition after a certain depth since doing it from the root would take too long and would
 						also be useless.
 				*/
-				if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
+				if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles);
+					/*
 				{
 					__gather_particles_recursive();
-					_check_particles_recursive();
 					children_particles.insert(p);
 					active = true;
 					has_particles = true;
 
 					assert(children_clusters.size() == 0);
-					assert(get_children_particle_num_recursive() == 0);
 					assert(children_particles.size() <= max_children_particles);
-				}
+				}*/
 				else
 				{
 					// Assign particle to right sub-cluster
@@ -620,7 +618,7 @@ template <unsigned int dim>
 void ParticleCluster<dim>::__gather_particles_recursive()
 {
 	assert(!has_particles);
-	assert(children_clusters.size() != 0);
+	//assert(children_clusters.size() != 0);
 
 	for (auto& c : children_clusters)
 	{
@@ -628,14 +626,33 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 		{
 			c.second.__gather_particles_recursive();
 		}
-		for (const unsigned int& i : c.second.children_particles)
+
+		for (const unsigned int &i : c.second.children_particles)
 		{
 			assert(children_particles.find(i) == children_particles.end());
-			children_particles.insert(i);
+			bool relocated = false;
+			// If particle is not within our boundaries, forward it to father
+			for (unsigned int j = 0; j < dim; ++j)
+			{
+				if (_get_particle_global(i).get_position()[j] > local_max_boundary[j] || _get_particle_global(i).get_position()[j] < local_min_boundary[j])
+				{
+					parent->relocate_particle(i);
+					relocated = true;
+					break;
+				}
+			}
+			// If we did not relocate the particle, it means we can keep it
+			if (!relocated)
+			{
+				children_particles.insert(i);
+			}
+
 		}
 		c.second.children_particles.clear();
 		c.second.active = false;
 	}
+	children_clusters.clear();
+	has_particles = true;
 }
 
 template<unsigned int dim>
@@ -705,8 +722,22 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 	*/
 	for (const unsigned int& p : children_particles)
 	{
-		unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
-		children_clusters[subscript].add_particle(p);
+		bool relocated = false;
+		// If particle is not within our boundaries, forward it to father
+		for (unsigned int j = 0; j < dim; ++j)
+		{
+			if (_get_particle_global(p).get_position()[j] > local_max_boundary[j] || _get_particle_global(p).get_position()[j] < local_min_boundary[j])
+			{
+				parent->relocate_particle(p);
+				relocated = true;
+				break;
+			}
+		}
+		if (!relocated)
+		{
+			unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
+			children_clusters[subscript].add_particle(p);
+		}
 	}
 	// Delete old ones.
 	children_particles.clear();
