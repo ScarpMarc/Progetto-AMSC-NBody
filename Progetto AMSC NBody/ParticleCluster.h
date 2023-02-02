@@ -517,7 +517,7 @@ void ParticleCluster<dim>::_update_boundaries_recursive()
 	}
 	// OMP
 #pragma omp parallel for
-	for (unsigned int i = 0; i < children_clusters.size(); ++i)
+	for (long i = 0; i < children_clusters.size(); ++i)
 	{
 		auto c = std::next(children_clusters.begin(), i);
 		c->second._update_boundaries_recursive();
@@ -955,7 +955,7 @@ void ParticleCluster<dim>::garbage_collect()
 {
 	// We can use OMP since no two clusters share the same parent.
 #pragma omp parallel for
-	for (unsigned int i = 0; i < children_clusters.size(); ++i)
+	for (long i = 0; i < children_clusters.size(); ++i)
 	{
 		auto c = std::next(children_clusters.begin(), i);
 		if (!c->second.is_active())
