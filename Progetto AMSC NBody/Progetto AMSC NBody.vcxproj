@@ -117,10 +117,11 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <OpenMPSupport>false</OpenMPSupport>
+      <OpenMPSupport>true</OpenMPSupport>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-      <UndefinePreprocessorDefinitions>USE_GRAPHICS</UndefinePreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>USE_GRAPHICS;</UndefinePreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
+      <AdditionalOptions>-openmp:llvm %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -432,31 +432,30 @@ void ParticleCluster<dim>::relocate_particle(const unsigned int& p)
 template <unsigned int dim>
 void ParticleCluster<dim>::_check_particles_recursive()
 {
-#pragma omp single
+	for (auto& c : children_clusters)
+	{
+		c.second._check_particles_recursive();
+	}
+
+	//#pragma omp single
 	for (auto it = children_particles.begin(); it != children_particles.end();)
 	{
 		bool removed = false;
-		const Particle<dim>& ref = _get_particle_global(*it);
 		for (unsigned int j = 0; j < dim; ++j)
 		{
 			// If particle
-			if (ref.get_position()[j] > local_max_boundary[j] || ref.get_position()[j] < local_min_boundary[j])
+			if (_get_particle_global(*it).get_position()[j] > local_max_boundary[j] || _get_particle_global(*it).get_position()[j] < local_min_boundary[j])
 			{
 				// relocate
-				unsigned int old_value = *it;
-				it = children_particles.erase(it);
-				parent->relocate_particle(old_value);
+				parent->relocate_particle(*it);
 				removed = true;
 				break;
 			}
 		}
 		if (!removed)
 			++it;
-	}
-
-	for (auto& c : children_clusters)
-	{
-		c.second._check_particles_recursive();
+		else
+			it = children_particles.erase(it);
 	}
 }
 
@@ -538,6 +537,7 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 	{
 		if (contains_particles())
 		{
+			assert(!_check_has_active_subclusters());
 			/*
 				All children are particles.
 			*/
@@ -563,6 +563,7 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 		}
 		else
 		{
+			assert(!contains_particles() && children_particles.size() == 0);
 			// All children are other clusters
 			if (!_check_has_active_subclusters())
 			{
@@ -580,36 +581,15 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 			else
 			{
 				// ACTIVE SUB-CLUSTERS
-
-				/* We will now check whether we could optimise our particles.
-					If some of our sub-clusters have particles, but less than the maximum among all of them, we can take those particles and
-						transfer them to us.
-					We only check for this condition after a certain depth since doing it from the root would take too long and would
-						also be useless.
-				*/
-				if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
+				// Assign particle to right sub-cluster
+				unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
+				if (children_clusters.find(subscript) == children_clusters.end())
 				{
-					__gather_particles_recursive();
-					children_particles.insert(p);
-					active = true;
-					has_particles = true;
-
-					assert(children_clusters.size() == 0);
-					assert(get_children_particle_num_recursive() == 0);
-					assert(children_particles.size() <= max_children_particles);
+					__create_subcluster_at(_locate_quadrant_for_particle(_get_particle_global(p)));
 				}
-				else
-				{
-					// Assign particle to right sub-cluster
-					unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
-					if (children_clusters.find(subscript) == children_clusters.end())
-					{
-						__create_subcluster_at(_locate_quadrant_for_particle(_get_particle_global(p)));
-					}
-					children_clusters[subscript].add_particle(p);
-
-					assert(!has_particles);
-				}
+				children_clusters[subscript].add_particle(p);
+				active = true;
+				assert(!has_particles);
 			}
 		}
 	}
@@ -619,22 +599,49 @@ template <unsigned int dim>
 void ParticleCluster<dim>::__gather_particles_recursive()
 {
 	assert(!has_particles);
-	assert(children_clusters.size() != 0);
+	//assert(children_clusters.size() != 0);
 
-	for (auto& c : children_clusters)
+		// We can use OMP
+#pragma omp parallel for
+	for (unsigned int c_idx = 0; c_idx < children_clusters.size(); ++c_idx)
 	{
-		if (!c.second.contains_particles()) // First gather sub-particles
+		auto c = std::next(children_clusters.begin(), c_idx);
+
+		if (!c->second.contains_particles()) // First gather sub-particles
 		{
-			c.second.__gather_particles_recursive();
+			c->second.__gather_particles_recursive();
 		}
-		for (const unsigned int& i : c.second.children_particles)
+
+		for (const unsigned int& i : c->second.children_particles)
 		{
 			assert(children_particles.find(i) == children_particles.end());
-			children_particles.insert(i);
+			bool relocated = false;
+			// If particle is not within our boundaries, forward it to father
+			for (unsigned int j = 0; j < dim; ++j)
+			{
+				if (_get_particle_global(i).get_position()[j] > local_max_boundary[j] || _get_particle_global(i).get_position()[j] < local_min_boundary[j])
+				{
+					parent->relocate_particle(i);
+					relocated = true;
+					break;
+				}
+			}
+			// If we did not relocate the particle, it means we can keep it
+			if (!relocated)
+			{
+#pragma omp critical
+				children_particles.insert(i);
+			}
+
 		}
-		c.second.children_particles.clear();
-		c.second.active = false;
+#pragma omp critical
+		c->second.children_particles.clear();
+#pragma omp critical
+		c->second.active = false;
 	}
+
+	children_clusters.clear();
+	has_particles = true;
 }
 
 template<unsigned int dim>
@@ -704,8 +711,22 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 	*/
 	for (const unsigned int& p : children_particles)
 	{
-		unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
-		children_clusters[subscript].add_particle(p);
+		bool relocated = false;
+		// If particle is not within our boundaries, forward it to father
+		for (unsigned int j = 0; j < dim; ++j)
+		{
+			if (_get_particle_global(p).get_position()[j] > local_max_boundary[j] || _get_particle_global(p).get_position()[j] < local_min_boundary[j])
+			{
+				parent->relocate_particle(p);
+				relocated = true;
+				break;
+			}
+		}
+		if (!relocated)
+		{
+			unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
+			children_clusters[subscript].add_particle(p);
+		}
 	}
 	// Delete old ones.
 	children_particles.clear();
@@ -870,6 +891,7 @@ void ParticleCluster<dim>::_update_physics()
 	}
 	else
 	{
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 #pragma omp parallel
 		{
 #pragma omp single
@@ -877,17 +899,26 @@ void ParticleCluster<dim>::_update_physics()
 #pragma omp taskgroup
 				{
 #pragma omp task
+#endif
 					_calc_speed();
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 #pragma omp task
+#endif
 					_calc_acc();
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 #pragma omp task
+#endif
 					_calc_mass();
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 				}
 				// Center of mass depends on total mass, we must run it after the others.
 #pragma omp task
+#endif
 				_calc_center_of_mass();
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 			}
 		}
+#endif
 	}
 }
 
@@ -895,8 +926,10 @@ template <unsigned int dim>
 void ParticleCluster<dim>::_calc_center_of_mass()
 {
 	Vector<dim> temp_pos = {};
+#ifndef _WIN32 // Custom sum not supported by MSVC
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_pos)
+#endif
 	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
 		auto val = std::next(children_particles.begin(), i);
@@ -910,8 +943,10 @@ void ParticleCluster<dim>::_calc_speed()
 {
 	Vector<dim> temp_speed = {};
 	// Reduction declared in Particle.h
+#ifndef _WIN32 // Custom sum not supported by MSVC
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_speed)
+#endif
 	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
 		auto val = std::next(children_particles.begin(), i);
@@ -925,8 +960,10 @@ void ParticleCluster<dim>::_calc_acc()
 {
 	Vector<dim> temp_accel = {};
 	// Reduction declared in Particle.h
+#ifndef _WIN32 // Custom sum not supported by MSVC
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_accel)
+#endif
 	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
 		auto val = std::next(children_particles.begin(), i);
@@ -940,8 +977,10 @@ void ParticleCluster<dim>::_calc_mass()
 {
 	double temp_mass = 0;
 	// Reduction declared in Particle.h
+#ifndef _WIN32 // Custom sum not supported by MSVC
 #pragma omp parallel for reduction(+ \
 								   : temp_mass)
+#endif
 	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
 		auto val = std::next(children_particles.begin(), i);
@@ -953,7 +992,25 @@ void ParticleCluster<dim>::_calc_mass()
 template <unsigned int dim>
 void ParticleCluster<dim>::garbage_collect()
 {
-	// We can use OMP since no two clusters share the same parent.
+	/* We will now check whether we could optimise our particles.
+		If some of our sub-clusters have particles, but less than the maximum among all of them, we can take those particles and
+			transfer them to us.
+		We only check for this condition after a certain depth since doing it from the root would take too long and would
+			also be useless.
+	*/
+	if (!contains_particles())
+	{
+		if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
+		{
+			__gather_particles_recursive();
+			active = true;
+			has_particles = true;
+
+			assert(children_clusters.size() == 0);
+			assert(children_particles.size() <= max_children_particles);
+		}
+	}
+	
 #pragma omp parallel for
 	for (long i = 0; i < children_clusters.size(); ++i)
 	{
@@ -968,11 +1025,12 @@ void ParticleCluster<dim>::garbage_collect()
 		}
 	}
 
-	for (auto it = children_clusters.begin(); it != children_clusters.end();)
-	{
-		if (!it->second.is_active())
-			it = children_clusters.erase(it);
-		else
-			++it;
-	}
+		for (auto it = children_clusters.begin(); it != children_clusters.end();)
+		{
+			if (!it->second.is_active())
+				it = children_clusters.erase(it);
+			else
+				++it;
+		}
+	
 }

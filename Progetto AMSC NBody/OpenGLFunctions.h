@@ -39,15 +39,15 @@ extern "C"
 	GLuint loadDDS(const char* imagepath);
 }
 
-template<unsigned int dim>
-void create_cube(const Vector<dim>& m, const Vector<dim>& M, GLfloat* out_buffer_data)
+/*template<unsigned int dim>
+void create_cube_OLD(const Vector<dim>& m, const Vector<dim>& M, GLfloat* out_buffer_data)
 {
-	GLfloat Mx = static_cast<GLfloat>(M[0]) / screenResX;
-	GLfloat My = static_cast<GLfloat>(M[1]) / screenResY;
-	GLfloat Mz = static_cast<GLfloat>(M[2]) / screenResX;
-	GLfloat mx = static_cast<GLfloat>(m[0]) / screenResX;
-	GLfloat my = static_cast<GLfloat>(m[1]) / screenResY;
-	GLfloat mz = static_cast<GLfloat>(m[2]) / screenResX;
+	GLfloat Mx = static_cast<GLfloat>(M[0]) * 0.5 / screenResX;
+	GLfloat My = static_cast<GLfloat>(M[1]) * 0.5 / screenResY;
+	GLfloat Mz = static_cast<GLfloat>(M[2]) * 0.5 / screenResX;
+	GLfloat mx = static_cast<GLfloat>(m[0]) * 0.5 / screenResX;
+	GLfloat my = static_cast<GLfloat>(m[1]) * 0.5 / screenResY;
+	GLfloat mz = static_cast<GLfloat>(m[2]) * 0.5 / screenResX;
 
 
 	GLfloat temp_arr[] = {
@@ -68,8 +68,46 @@ void create_cube(const Vector<dim>& m, const Vector<dim>& M, GLfloat* out_buffer
 	memcpy(out_buffer_data, temp_arr, sizeof(temp_arr));
 }
 
+template<unsigned int dim>
+void create_cube(GLfloat* out_buffer_data)
+{
+	GLfloat Mx = 0.5f;
+	GLfloat My = 0.5f;
+	GLfloat Mz = 0.5f;
+	GLfloat mx = -0.5f;
+	GLfloat my = -0.5f;
+	GLfloat mz = -0.5f;
+
+
+	GLfloat temp_arr[] = {
+	mx,my,mz,Mx,my,mz,mx,My,mz, // triangle 0 
+	Mx,my,mz,mx,My,mz,Mx,My,mz, // 1
+	Mx,my,mz,Mx,My,mz,Mx,my,Mz, // 2 
+	Mx,My,mz,Mx,my,Mz,Mx,My,Mz, // 3 
+	Mx,my,Mz,mx,my,Mz,mx,My,Mz, // 4
+	Mx,my,Mz,Mx,My,Mz,mx,My,Mz, // 5
+	mx,my,mz,mx,my,Mz,mx,My,mz, // 6
+	mx,my,Mz,mx,My,mz,mx,My,Mz, // 7
+	mx,my,mz,Mx,my,mz,Mx,my,Mz, // 8
+	mx,my,mz,mx,my,Mz,Mx,my,Mz, // 9
+	mx,My,mz,mx,My,Mz,Mx,My,Mz, // 10
+	mx,My,mz,Mx,My,mz,Mx,My,Mz // 11
+	};
+
+	memcpy(out_buffer_data, temp_arr, sizeof(temp_arr));
+}*/
+
+/*template <unsigned int dim>
+void populate_cluster_vertex_array(ParticleCluster<dim>* cluster, GLubyte* output, const unsigned int& index)
+{
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		output[index * 4 + i] = cluster ->get_global_max_boundary
+	}
+}*/
+
 template <unsigned int dim>
-void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
+void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*, ParticleCluster<dim>* main_cluster*/)
 {
 	std::random_device rd; // obtain a random number from hardware
 	std::mt19937 gen(rd()); // seed the generator
@@ -90,7 +128,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 
 	// Create and compile our GLSL program from the shaders
 	GLuint programID_main = LoadShaders("vertexShader.vertexshader", "fragmentShader.fragmentshader");
-	GLuint programID_simple = LoadShaders("simple_vertexshader.vertexshader", "simple_fragmentshader.fragmentshader");
+	//GLuint programID_simple = LoadShaders("simple_vertexshader.vertexshader", "simple_fragmentshader.fragmentshader");
 
 	// Vertex shader
 	GLuint CameraRight_worldspace_ID = glGetUniformLocation(programID_main, "CameraRight_worldspace");
@@ -104,28 +142,18 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 
 	static GLfloat* g_particule_position_size_data = new GLfloat[particles->size() * 4];
 	static GLubyte* g_particule_color_data = new GLubyte[particles->size() * 4];
+	//static GLubyte* g_cluster_color_data = new GLubyte[clusters->size() * 4];
 
 	// The VBO containing the 4 vertices of the particles.
 	// Thanks to instancing, they will be shared by all particles.
 	static const GLfloat g_vertex_buffer_data[] = {
-		-0.5f,
-		-0.5f,
-		0.0f,
-		0.5f,
-		-0.5f,
-		0.0f,
-		-0.5f,
-		0.5f,
-		0.0f,
-		0.5f,
-		0.5f,
-		0.0f,
+		-0.5f, -0.5f, 
+		0.0f, 0.5f,
+		-0.5f, 0.0f,
+		-0.5f, 0.5f, 
+		0.0f, 0.5f, 
+		0.5f, 0.0f,
 	};
-
-	GLfloat* boundary_vertices = (GLfloat*)malloc(12 * 3 * 3 * sizeof(GLfloat)); // 12 triangles, 3 vertices per triangle, 3 coords per vertex
-
-	// Field boundaries
-	create_cube(Particle<dim>::get_global_max_boundary(), Particle<dim>::get_global_min_boundary(), boundary_vertices);
 
 	GLuint billboard_vertex_buffer;
 	glGenBuffers(1, &billboard_vertex_buffer);
@@ -146,27 +174,43 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
 	glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
 
-	// The VBO containing the boundaries of the field
+	// Generate second VAO
+	/*GLuint VertexArrayID_boundaries;
+	glGenVertexArrays(1, &VertexArrayID_boundaries);
+	glBindVertexArray(VertexArrayID_boundaries);
+
+	// Field boundaries
+	GLfloat* boundary_vertices = (GLfloat*)malloc(12 * 3 * 3 * sizeof(GLfloat)); // 12 triangles, 3 vertices per triangle, 3 coords per vertex
+	create_cube(Particle<dim>::get_global_max_boundary(), Particle<dim>::get_global_min_boundary(), boundary_vertices);
+
+	// The VBO containing the geometry of a cluster (cube). This will not change, similarly to the billboard VBO for particles
+	GLuint billboard_vertex_buffer_boundaries;
+	glGenBuffers(1, &billboard_vertex_buffer_boundaries);
+	glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer_boundaries);
+	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(boundary_vertices), boundary_vertices, GL_STATIC_DRAW);
+
+	// The VBO containing the boundaries of the field. Will change based on which cluster we are drawing.
 	GLuint global_boundaries_buffer;
 	glGenBuffers(1, &global_boundaries_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, global_boundaries_buffer);
 	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(boundary_vertices), boundary_vertices, GL_STATIC_DRAW); // Should be 12 triangles per one cube
-
+	//glBufferData(GL_ARRAY_BUFFER, clusters->size() * 4 * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); 
+	*/
 	do
 	{
-		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the screen
+
+		// ------- Drawing particles
+		glBindVertexArray(VertexArrayID);
 
 		computeMatricesFromInputs(window);
 		glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		glm::mat4 ViewMatrix = getViewMatrix();
-
 		glm::vec3 CameraPosition(glm::inverse(ViewMatrix)[3]);
-
 		glm::mat4 ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
-
 		int ParticlesCount = 0;
+
 		for (int i = 0; i < particles->size(); i++)
 		{
 			Particle<dim>& p = particles->at(i); // shortcut
@@ -178,8 +222,6 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 			g_particule_position_size_data[4 * i + 0] = (GLfloat)(p.get_position()[0]) / screenResX;
 			g_particule_position_size_data[4 * i + 1] = (GLfloat)(p.get_position()[1]) / screenResY;
 			g_particule_position_size_data[4 * i + 2] = (GLfloat)(p.get_position()[2]) / screenResX;
-			// std::cout << g_particule_position_size_data[4 * i + 0] << "; " << g_particule_position_size_data[4 * i + 1] << "; " << g_particule_position_size_data[4 * i + 2] << std::endl;
-
 			g_particule_position_size_data[4 * i + 3] = .01; // p.getMass();
 
 			int thisColIdx = distr(gen);
@@ -195,21 +237,13 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 			++ParticlesCount;
 		}
 
-		// Field boundaries
-		create_cube(Particle<dim>::get_global_max_boundary(), Particle<dim>::get_global_min_boundary(), boundary_vertices);
-
-		// SortParticles();
-
 		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-		glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+		glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf.
 		glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLfloat) * 4, g_particule_position_size_data);
 
 		glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
-		glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+		glBufferData(GL_ARRAY_BUFFER, particles->size() * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf.
 		glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
-
-		glBindBuffer(GL_ARRAY_BUFFER, global_boundaries_buffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(boundary_vertices), boundary_vertices, GL_STATIC_DRAW);
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -285,14 +319,25 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
 
+		/*cluster_amt = main_cluster->get_children_clusters_num_recursive();
+
+		glBindVertexArray(VertexArrayID_boundaries);
+		for (int i = 0; i < clusters->size(); i++)
+		{
+
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, global_boundaries_buffer);
+		glBufferData(GL_ARRAY_BUFFER, cluster_amt * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf.
 		glUseProgram(programID_simple);
 
 		// Draw boundaries
 		// 4th attribute buffer : cube vertices
-		glEnableVertexAttribArray(3);
+		glEnableVertexAttribArray(1);
+
 		glBindBuffer(GL_ARRAY_BUFFER, global_boundaries_buffer);
 		glVertexAttribPointer(
-			0,		  // attribute. No particular reason for 0, but must match the layout in the shader.
+			1,		  // attribute. No particular reason for 0, but must match the layout in the shader.
 			3,		  // size
 			GL_FLOAT, // type
 			GL_FALSE, // normalized?
@@ -301,9 +346,11 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 		);
 
 		//glVertexAttribDivisor(3, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
 
-		glDisableVertexAttribArray(3);
+		glDrawElements(GL_TRIANGLE_STRIP, 0, 6);
+		glDisableVertexAttribArray(1);
+		//glDisableVertexAttribArray(1);
+		*/
 
 		// Swap buffers
 		glfwSwapBuffers(*window);
@@ -317,10 +364,11 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles)
 	glDeleteBuffers(1, &particles_color_buffer);
 	glDeleteBuffers(1, &particles_position_buffer);
 	glDeleteBuffers(1, &billboard_vertex_buffer);
-	glDeleteBuffers(1, &global_boundaries_buffer);
+	//glDeleteBuffers(1, &global_boundaries_buffer);
 	glDeleteProgram(programID_main);
 	glDeleteTextures(1, &Texture);
 	glDeleteVertexArrays(1, &VertexArrayID);
+	//glDeleteVertexArrays(1, &VertexArrayID_boundaries);
 
-	free(boundary_vertices);
+	//free(boundary_vertices);
 }
