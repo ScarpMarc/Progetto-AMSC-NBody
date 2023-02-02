@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <cmath>
 #include <fstream>
+#include <vector>
 
 /// <summary>
 /// Represents the basic particles that interact in the world
@@ -15,17 +16,13 @@ template <unsigned int dim>
 class Particle
 {
 public:
-
-	/// <summary>
-	/// Constructor
-	/// </summary>
-	/// <param name =
-	Particle(
+	explicit Particle(
+		const unsigned int& ID,
 		Vector<dim> position,
 		Vector<dim> speed,
 		Vector<dim> acceleration,
 		double mass) :
-		ID(maxID),
+		ID(ID),
 		pos(position),
 		speed(speed),
 		accel(acceleration),
@@ -33,14 +30,26 @@ public:
 	{
 		for (unsigned int d = 0; d < dim; ++d)
 		{
-			if (max_boundary[d] > pos[d]) max_boundary[d] = pos[d];
-			if (min_boundary[d] < pos[d]) min_boundary[d] = pos[d];
+			if (max_boundary[d] < pos[d]) max_boundary[d] = pos[d];
+			if (min_boundary[d] > pos[d]) min_boundary[d] = pos[d];
 		}
 
 		++maxID;
 	}
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name =
+	explicit Particle(
+		Vector<dim> position,
+		Vector<dim> speed,
+		Vector<dim> acceleration,
+		double mass) : Particle(maxID, position, speed, acceleration, mass) {}
 
-	Particle() : Particle({}, {}, {}, 0.0) {}
+	explicit Particle(unsigned int ID) : Particle(ID, {}, {}, {}, 0.0) {}
+
+	explicit Particle() : Particle({}, {}, {}, 0.0) {}
+
 
 	/// <summary>
 	/// Needed to be able to cast to ParticleCluster through smart pointers.
@@ -118,15 +127,19 @@ public:
 
 	inline static const Vector<dim>& get_global_min_boundary() { return min_boundary; }
 
-	constexpr inline bool isCluster() const { return false; }
+	virtual inline bool isCluster() const { return false; }
 
 	// TODO Set value
 	// Mass constant k
 	const double mass_constant_k = 6.673e-11;//0.001;
 
+	//void set_parent(const Particle& p) { parent = std::make_shared<Particle>(p); }
+
 protected:
 	void _updateSpeed(const unsigned int& delta_ticks);
 	void _updatePos(const unsigned int& delta_ticks);
+
+	unsigned int ID; // particle id number
 
 	Vector<dim> pos;
 	Vector<dim> speed;
@@ -140,12 +153,16 @@ protected:
 
 private:
 	static unsigned int maxID;
-	unsigned int ID; // particle id number
+
+	// HACK
+	//std::shared_ptr<Particle<dim>> parent;
 
 	// TODO Electric constant
 
 	// TODO Magnetic constant (?)
 };
+
+extern std::vector<Particle<DIM>> global_particles;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,7 +206,7 @@ const Vector<dim>& Particle<dim>::calcNewPosition(const unsigned int& delta_tick
 template<unsigned int dim>
 void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
 {
-	for (int i = 0; i < dim; ++i)
+	for (unsigned int i = 0; i < dim; ++i)
 	{
 		accel[i] = resulting_force[i] / mass;
 	}
@@ -198,7 +215,7 @@ void Particle<dim>::updateResultingForce(const Vector<dim>& resulting_force)
 template<unsigned int dim>
 void Particle<dim>::_updateSpeed(const unsigned int& delta_ticks)
 {
-	for (int i = 0; i < dim; ++i)
+	for (unsigned int i = 0; i < dim; ++i)
 	{
 		speed[i] += accel[i] * ((double)delta_ticks / ticks_per_second);
 	}
@@ -241,7 +258,7 @@ template<unsigned int dim>
 Vector<dim> Particle<dim>::calcDistance(const Particle<dim>& other) const
 {
 	Vector<dim> displacement = Vector<dim>();
-	for (int i = 0; i < dim; ++i)
+	for (unsigned int i = 0; i < dim; ++i)
 	{
 		displacement[i] = other.pos[i] - pos[i];
 	}
