@@ -155,7 +155,7 @@ public:
 	/// <returns>
 	/// Amount of clusters eliminated
 	/// </returns> 
-	unsigned int garbage_collect();
+	size_t garbage_collect();
 
 	constexpr inline bool isCluster() const { return true; }
 
@@ -174,7 +174,7 @@ public:
 	/// <returns>
 	/// Amount of clusters eliminated
 	/// </returns>
-	unsigned int remove_all_subclusters_recursive();
+	size_t remove_all_subclusters_recursive();
 
 	// void set_parent(ParticleCluster const& p) { parent = p; }
 
@@ -275,7 +275,10 @@ private:
 	/// This function takes particles from the sub-clusters, hence it is never called on a cluster
 	///		that contains particles itself.
 	/// </remarks>
-	void __gather_particles_recursive();
+	/// <returns>
+	/// Amount of cluster eliminated
+	/// </returns>
+	size_t __gather_particles_recursive();
 
 	/// <summary>
 	/// Creates sub-clusters automatically in order to accomodate <c>n</c> particles.
@@ -537,6 +540,10 @@ void ParticleCluster<dim>::_check_particles()
 			}
 		}
 	}
+	if (children_particles.size() == 0)
+	{
+		active = false;
+	}
 }
 
 template <unsigned int dim>
@@ -734,8 +741,9 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 }
 
 template <unsigned int dim>
-void ParticleCluster<dim>::__gather_particles_recursive()
+size_t ParticleCluster<dim>::__gather_particles_recursive()
 {
+	size_t func_out = 0;
 	assert(!has_particles);
 	//assert(children_clusters.size() != 0);
 
@@ -778,15 +786,17 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 #pragma omp critical
 		c->second.active = false;
 	}
-
+	func_out += children_clusters.size();
 	children_clusters.clear();
 	has_particles = true;
+
+	return func_out;
 }
 
 template<unsigned int dim>
-unsigned int ParticleCluster<dim>::remove_all_subclusters_recursive()
+size_t ParticleCluster<dim>::remove_all_subclusters_recursive()
 {
-	unsigned int output = 0;
+	size_t func_out = 0;
 	/* We are calling this function either during a garbage collection sweep, or when adding a new
 		particle. We have to delete all sub-clusters, and their sub-clusters; no
 		particle should get caught in the process.
@@ -798,11 +808,11 @@ unsigned int ParticleCluster<dim>::remove_all_subclusters_recursive()
 		assert(p.second.get_children_particle_num() == 0);
 		assert(!p.second.is_active());
 
-		output += p.second.remove_all_subclusters_recursive();
+		func_out += p.second.remove_all_subclusters_recursive();
 	}
-	output += children_clusters.size();
+	func_out += children_clusters.size();
 	children_clusters.clear();
-	return output;
+	return func_out;
 }
 
 template <unsigned int dim>
@@ -1137,9 +1147,9 @@ void ParticleCluster<dim>::_calc_mass()
 }
 
 template <unsigned int dim>
-unsigned int ParticleCluster<dim>::garbage_collect()
+size_t ParticleCluster<dim>::garbage_collect()
 {
-	unsigned int output = 0;
+	size_t func_out = 0;
 	/* We will now check whether we could optimise our particles.
 		If some of our sub-clusters have particles, but less than the maximum among all of them, we can take those particles and
 			transfer them to us.
@@ -1148,41 +1158,43 @@ unsigned int ParticleCluster<dim>::garbage_collect()
 	*/
 	if (!contains_particles())
 	{
-		/*if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
+		if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
 		{
-			_check_particles_recursive();
-			__gather_particles_recursive();
+			//_check_particles_recursive();
+			func_out += __gather_particles_recursive();
 			active = true;
 			has_particles = true;
 
 			assert(children_clusters.size() == 0);
 			assert(children_particles.size() <= max_children_particles);
-		}*/
+		}
 	}
-
-#pragma omp parallel for
+#ifndef _WIN32
+#pragma omp parallel for reduction(func_out)
+#endif
 	for (unsigned int i = 0; i < children_clusters.size(); ++i)
 	{
 		auto c = std::next(children_clusters.begin(), i);
 		if (!c->second.is_active())
 		{
-#pragma omp critical
-			output += c->second.remove_all_subclusters_recursive();
+			func_out += c->second.remove_all_subclusters_recursive();
 		}
 		else
 		{
-#pragma omp critical
-			output += c->second.garbage_collect();
+			func_out += c->second.garbage_collect();
 		}
 	}
 
 	for (auto it = children_clusters.begin(); it != children_clusters.end();)
 	{
 		if (!it->second.is_active())
+		{
 			it = children_clusters.erase(it);
+			++func_out;
+		}
 		else
 			++it;
 	}
 
-	return output;
+	return func_out;
 }

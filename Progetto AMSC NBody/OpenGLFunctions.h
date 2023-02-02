@@ -224,7 +224,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 			g_particule_position_size_data[4 * i + 2] = (GLfloat)(p.get_position()[2]) / screenResX;
 			g_particule_position_size_data[4 * i + 3] = .01; // p.getMass();
 
-			int thisColIdx = distr(gen);
+			//int thisColIdx = distr(gen);
 			//g_particule_color_data[4 * i + 0] = stars[thisColIdx][0];	 // p.r;
 			//g_particule_color_data[4 * i + 1] = stars[thisColIdx][1];	 // p.g;
 			//g_particule_color_data[4 * i + 2] = stars[thisColIdx][2];	 // p.b;

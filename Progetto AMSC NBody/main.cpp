@@ -178,13 +178,7 @@ int mainLoop()
 			cout << "CLUSTERS: " << main_cluster.get_children_clusters_num_recursive() + 1 << " (" << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active)" << endl;
 			auto gcol_start = chrono::high_resolution_clock::now();
 
-			unsigned int eliminated = main_cluster.garbage_collect();
-
-			for (unsigned int i = 0; i < global_relocated_particles.size(); ++i)
-			{
-				main_cluster.add_particle(global_relocated_particles[i].get_particle_id());
-			}
-			global_relocated_particles.clear();
+			size_t eliminated = main_cluster.garbage_collect();
 
 			auto gcol_end = chrono::high_resolution_clock::now();
 			
