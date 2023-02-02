@@ -629,11 +629,14 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 			// If we did not relocate the particle, it means we can keep it
 			if (!relocated)
 			{
+#pragma omp critical
 				children_particles.insert(i);
 			}
 
 		}
+#pragma omp critical
 		c->second.children_particles.clear();
+#pragma omp critical
 		c->second.active = false;
 	}
 
