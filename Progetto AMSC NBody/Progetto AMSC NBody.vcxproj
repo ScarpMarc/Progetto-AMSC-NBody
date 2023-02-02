@@ -192,6 +192,8 @@
   <ItemGroup>
     <None Include="..\Resources\fragmentShader.fragmentshader" />
     <None Include="..\Resources\settings.json" />
+    <None Include="..\Resources\simple_fragmentshader.fragmentshader" />
+    <None Include="..\Resources\simple_vertexshader.vertexshader" />
     <None Include="..\Resources\vertexShader.vertexshader" />
     <None Include="ClassDiagram.cd" />
   </ItemGroup>
