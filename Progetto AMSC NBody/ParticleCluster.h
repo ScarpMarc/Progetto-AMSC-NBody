@@ -579,36 +579,15 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 			else
 			{
 				// ACTIVE SUB-CLUSTERS
-
-				/* We will now check whether we could optimise our particles.
-					If some of our sub-clusters have particles, but less than the maximum among all of them, we can take those particles and
-						transfer them to us.
-					We only check for this condition after a certain depth since doing it from the root would take too long and would
-						also be useless.
-				*/
-				if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles);
-					/*
+				// Assign particle to right sub-cluster
+				unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
+				if (children_clusters.find(subscript) == children_clusters.end())
 				{
-					__gather_particles_recursive();
-					children_particles.insert(p);
-					active = true;
-					has_particles = true;
-
-					assert(children_clusters.size() == 0);
-					assert(children_particles.size() <= max_children_particles);
-				}*/
-				else
-				{
-					// Assign particle to right sub-cluster
-					unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
-					if (children_clusters.find(subscript) == children_clusters.end())
-					{
-						__create_subcluster_at(_locate_quadrant_for_particle(_get_particle_global(p)));
-					}
-					children_clusters[subscript].add_particle(p);
-
-					assert(!has_particles);
+					__create_subcluster_at(_locate_quadrant_for_particle(_get_particle_global(p)));
 				}
+				children_clusters[subscript].add_particle(p);
+
+				assert(!has_particles);
 			}
 		}
 	}
@@ -620,14 +599,18 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 	assert(!has_particles);
 	//assert(children_clusters.size() != 0);
 
-	for (auto& c : children_clusters)
+		// We can use OMP
+#pragma omp parallel for
+	for (unsigned int c_idx = 0; c_idx < children_clusters.size(); ++c_idx)
 	{
-		if (!c.second.contains_particles()) // First gather sub-particles
+		auto c = std::next(children_clusters.begin(), c_idx);
+
+		if (!c->second.contains_particles()) // First gather sub-particles
 		{
-			c.second.__gather_particles_recursive();
+			c->second.__gather_particles_recursive();
 		}
 
-		for (const unsigned int &i : c.second.children_particles)
+		for (const unsigned int& i : c->second.children_particles)
 		{
 			assert(children_particles.find(i) == children_particles.end());
 			bool relocated = false;
@@ -648,9 +631,10 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 			}
 
 		}
-		c.second.children_particles.clear();
-		c.second.active = false;
+		c->second.children_particles.clear();
+		c->second.active = false;
 	}
+
 	children_clusters.clear();
 	has_particles = true;
 }
@@ -985,6 +969,24 @@ void ParticleCluster<dim>::_calc_mass()
 template <unsigned int dim>
 void ParticleCluster<dim>::garbage_collect()
 {
+	/* We will now check whether we could optimise our particles.
+		If some of our sub-clusters have particles, but less than the maximum among all of them, we can take those particles and
+			transfer them to us.
+		We only check for this condition after a certain depth since doing it from the root would take too long and would
+			also be useless.
+	*/
+	if (!contains_particles())
+	{
+		if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
+		{
+			__gather_particles_recursive();
+			active = true;
+			has_particles = true;
+
+			assert(children_clusters.size() == 0);
+			assert(children_particles.size() <= max_children_particles);
+		}
+	}
 	// We can use OMP since no two clusters share the same parent.
 #pragma omp parallel for
 	for (unsigned int i = 0; i < children_clusters.size(); ++i)
@@ -998,13 +1000,13 @@ void ParticleCluster<dim>::garbage_collect()
 		{
 			c->second.garbage_collect();
 		}
-	}
 
-	for (auto it = children_clusters.begin(); it != children_clusters.end();)
-	{
-		if (!it->second.is_active())
-			it = children_clusters.erase(it);
-		else
-			++it;
+		for (auto it = children_clusters.begin(); it != children_clusters.end();)
+		{
+			if (!it->second.is_active())
+				it = children_clusters.erase(it);
+			else
+				++it;
+		}
 	}
 }
