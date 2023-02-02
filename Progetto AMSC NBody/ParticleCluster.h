@@ -617,7 +617,7 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 			assert(children_particles.find(i) == children_particles.end());
 			bool relocated = false;
 			// If particle is not within our boundaries, forward it to father
-			/*for (unsigned int j = 0; j < dim; ++j)
+			for (unsigned int j = 0; j < dim; ++j)
 			{
 				if (_get_particle_global(i).get_position()[j] > local_max_boundary[j] || _get_particle_global(i).get_position()[j] < local_min_boundary[j])
 				{
@@ -625,7 +625,7 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 					relocated = true;
 					break;
 				}
-			}*/
+			}
 			// If we did not relocate the particle, it means we can keep it
 			if (!relocated)
 			{
@@ -1000,18 +1000,18 @@ void ParticleCluster<dim>::garbage_collect()
 	*/
 	if (!contains_particles())
 	{
-		if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
+		/*if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
 		{
-			__gather_particles_recursive();
 			_check_particles_recursive();
+			__gather_particles_recursive();
 			active = true;
 			has_particles = true;
 
 			assert(children_clusters.size() == 0);
 			assert(children_particles.size() <= max_children_particles);
-		}
+		}*/
 	}
-	
+
 #pragma omp parallel for
 	for (long i = 0; i < children_clusters.size(); ++i)
 	{
@@ -1026,12 +1026,11 @@ void ParticleCluster<dim>::garbage_collect()
 		}
 	}
 
-		for (auto it = children_clusters.begin(); it != children_clusters.end();)
-		{
-			if (!it->second.is_active())
-				it = children_clusters.erase(it);
-			else
-				++it;
-		}
-	
+	for (auto it = children_clusters.begin(); it != children_clusters.end();)
+	{
+		if (!it->second.is_active())
+			it = children_clusters.erase(it);
+		else
+			++it;
+	}
 }
