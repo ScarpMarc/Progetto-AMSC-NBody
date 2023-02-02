@@ -142,7 +142,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 
 	static GLfloat* g_particule_position_size_data = new GLfloat[particles->size() * 4];
 	static GLubyte* g_particule_color_data = new GLubyte[particles->size() * 4];
-	static GLubyte* g_cluster_color_data = new GLubyte[clusters->size() * 4];
+	//static GLubyte* g_cluster_color_data = new GLubyte[clusters->size() * 4];
 
 	// The VBO containing the 4 vertices of the particles.
 	// Thanks to instancing, they will be shared by all particles.
@@ -370,5 +370,5 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 	glDeleteVertexArrays(1, &VertexArrayID);
 	//glDeleteVertexArrays(1, &VertexArrayID_boundaries);
 
-	free(boundary_vertices);
+	//free(boundary_vertices);
 }

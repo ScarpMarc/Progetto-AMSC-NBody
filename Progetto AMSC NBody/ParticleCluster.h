@@ -432,7 +432,7 @@ void ParticleCluster<dim>::relocate_particle(const unsigned int& p)
 template <unsigned int dim>
 void ParticleCluster<dim>::_check_particles_recursive()
 {
-#pragma omp single
+//#pragma omp single
 	for (auto it = children_particles.begin(); it != children_particles.end();)
 	{
 		bool removed = false;
@@ -590,6 +590,7 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 				if (nest_depth >= (log2(total_particles) / log2(max_children_particles)) && get_children_particle_num_recursive() < max_children_particles)
 				{
 					__gather_particles_recursive();
+					_check_particles_recursive();
 					children_particles.insert(p);
 					active = true;
 					has_particles = true;
