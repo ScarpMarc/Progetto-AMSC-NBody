@@ -178,7 +178,7 @@ int mainLoop()
 			cout << "CLUSTERS: " << main_cluster.get_children_clusters_num_recursive() + 1 << " (" << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active)" << endl;
 			auto gcol_start = chrono::high_resolution_clock::now();
 
-			main_cluster.garbage_collect();
+			unsigned int eliminated = main_cluster.garbage_collect();
 
 			for (unsigned int i = 0; i < global_relocated_particles.size(); ++i)
 			{
@@ -189,7 +189,7 @@ int mainLoop()
 			auto gcol_end = chrono::high_resolution_clock::now();
 			
 			auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
-			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us"
+			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us (eliminated " << eliminated <<" clusters)"
 				 << " -- Update: " << update_duration_this_tick.count() << "us" << endl;
 			cout << "Current boundaries: MIN: ";
 			for (unsigned int i = 0; i < DIM; ++i)
