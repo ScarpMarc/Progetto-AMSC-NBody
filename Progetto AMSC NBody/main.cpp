@@ -178,12 +178,12 @@ int mainLoop()
 			auto gcol_start = chrono::high_resolution_clock::now();
 
 			main_cluster.garbage_collect();
-
 			auto gcol_end = chrono::high_resolution_clock::now();
-			cout << "Current boundaries: MIN: ";
+			
 			auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
 			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us"
 				 << " -- Update: " << update_duration_this_tick.count() << "us" << endl;
+			cout << "Current boundaries: MIN: ";
 			for (unsigned int i = 0; i < DIM; ++i)
 			{
 				cout << Particle<DIM>::get_global_min_boundary()[i] << " ";
