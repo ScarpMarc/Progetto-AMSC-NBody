@@ -49,7 +49,7 @@ public:
 	explicit Particle(unsigned int ID) : Particle(ID, {}, {}, {}, 0.0) {}
 
 	explicit Particle() : Particle({}, {}, {}, 0.0) {}
-	
+
 
 	/// <summary>
 	/// Needed to be able to cast to ParticleCluster through smart pointers.

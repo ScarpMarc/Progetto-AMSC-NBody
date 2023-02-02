@@ -2,21 +2,22 @@
 #include <vector>
 
 #include "Particle.h"
+#include "Globals.h"
 #include <assert.h>
 #include <set>
 #include <map>
-#include <iterator>
 /*
 	TODO
 	Update clusters at each frame
 	Update boundaries at each frame
 */
 
+
 /// <summary>
 /// Represents a cluster of particles, used to optimise the calculation of interactions with other particles/clusters.
 /// </summary>
 /// <remarks>
-/// Effectively, a cluster acts as a virtual particle and retains all its properties.
+/// Effectively, a cluster acts as a virtual particle and retains all its properties. 
 /// Methods that make use of Particle's properties (position, speed, acceleration, mass) are the exact same as the base class;
 ///		each getter method now returns the sum over all particles of the relevant property, which is calculated upon creation or
 ///		in general when particles are added/removed.
@@ -31,11 +32,24 @@ public:
 	/// Default constructor which initialises all properties to 0, same as the default constructor of Particle.
 	/// </summary>
 	ParticleCluster() : Particle<dim>(max_cluster_ID), nest_depth(0), grid_pos(std::array<unsigned int, dim>{}), last_boundary_update(0),
-						parent(nullptr), has_particles(false)
+		parent(nullptr), has_particles(false)
 	{
 		// Brutal hack to avoid having particles exactly on the edge
 		local_max_boundary = Particle<dim>::max_boundary + Particle<dim>::max_boundary * .01;
 		local_min_boundary = Particle<dim>::min_boundary + Particle<dim>::min_boundary * .01;
+
+		double max = local_max_boundary[0], min = local_min_boundary[0];
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			if (local_max_boundary[i] > max) max = local_max_boundary[i];
+			if (local_min_boundary[i] < min) min = local_min_boundary[i];
+		}
+
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			local_max_boundary[i] = max;
+			local_min_boundary[i] = min;
+		}
 
 		active = false;
 
@@ -53,7 +67,6 @@ public:
 		{
 			add_particle(i);
 		}
-
 		for (const unsigned int& i : children_particles)
 		{
 			Particle<dim>::mass += _get_particle_global(i).getMass();
@@ -61,21 +74,18 @@ public:
 			Particle<dim>::speed += _get_particle_global(i).get_speed();
 			Particle<dim>::accel += _get_particle_global(i).get_acc();
 		}
-
 		local_max_boundary = Particle<dim>::max_boundary;
 		local_min_boundary = Particle<dim>::min_boundary;
-
 		active = true;
-
 		++max_cluster_ID;
 	}*/
 
 	/// <summary>
 	/// Constructor that takes the parent as argument, along with the position of the will-be child within its quadrant.
 	/// </summary>
-	ParticleCluster(ParticleCluster<dim> *parent, const unsigned int &depth,
-					const std::array<unsigned int, dim> &grid_pos) : Particle<dim>(max_cluster_ID), nest_depth(depth), grid_pos(grid_pos),
-																	 last_boundary_update(0), parent(parent), has_particles(false)
+	ParticleCluster(ParticleCluster<dim>* parent, const unsigned int& depth,
+		const std::array<unsigned int, dim>& grid_pos) : Particle<dim>(max_cluster_ID), nest_depth(depth), grid_pos(grid_pos),
+		last_boundary_update(0), parent(parent), has_particles(false)
 	{
 		for (unsigned int i = 0; i < dim; ++i)
 		{
@@ -122,7 +132,7 @@ public:
 	///		see <see cref="max_children"/>); if not, we will append <c>p</c> to the children vector.
 	/// </remarks>
 	/// <param name="p">Particle index from the global container</param>
-	void add_particle(const unsigned int &p);
+	void add_particle(const unsigned int& p);
 
 	/// <summary>
 	/// Attempts to relocate the particle by either storing it or sending it to the parent. Effectively,
@@ -136,7 +146,7 @@ public:
 	/// This operation may result in some clusters sub-dividing, but at the moment I have no idea how else to implement it.
 	/// </remarks>
 	/// <param name="p"></param>
-	void relocate_particle(const unsigned int &p);
+	void relocate_particle(const unsigned int& p);
 
 	/// <summary>
 	/// Checks all sub-clusters and eliminates those that are no longer active.
@@ -145,9 +155,9 @@ public:
 
 	constexpr inline bool isCluster() const { return true; }
 
-	inline const Vector<dim> &get_max_boundary() const { return local_max_boundary; }
+	inline const Vector<dim>& get_max_boundary() const { return local_max_boundary; }
 
-	inline const Vector<dim> &get_min_boundary() const { return local_min_boundary; }
+	inline const Vector<dim>& get_min_boundary() const { return local_min_boundary; }
 
 	/// <summary>
 	/// Queries whether the cluster is active
@@ -251,7 +261,7 @@ private:
 	/// </remarks>
 	///< param name = "n">Amount of total children to store</param>
 	///< param name = "garbage_collect">Whether to remove unused clusters immediately</param>
-	void _create_subclusters(const unsigned int &n, const bool &garbage_collect = false);
+	void _create_subclusters(const unsigned int& n, const bool& garbage_collect = false);
 
 	/// <summary>
 	/// Creates one level of sub-clusters. The amount is specified by <see cref="num_subclusters"/>.
@@ -293,13 +303,13 @@ private:
 	/// <returns>
 	/// The subscript to the cluster in <p>children</p>
 	/// </returns>
-	unsigned int _locate_subcluster_for_particle(const Particle<dim> &p) const;
+	unsigned int _locate_subcluster_for_particle(const Particle<dim>& p) const;
 
 	/// <summary>
 	/// Locates the right quadrant for a particle. That quadrant is not guaranteed to
 	///		have a cluster.
 	/// </summary>
-	std::array<unsigned int, dim> _locate_quadrant_for_particle(const Particle<dim> &p) const;
+	std::array<unsigned int, dim> _locate_quadrant_for_particle(const Particle<dim>& p) const;
 
 	/// <summary>
 	/// Checks if there are active sub-clusters.
@@ -320,13 +330,12 @@ private:
 	/// </summary>
 	std::array<unsigned int, dim> grid_pos;
 
-	inline Particle<dim> &_get_particle_global(const unsigned int &idx) const { return global_particles[idx]; }
+	inline Particle<dim>& _get_particle_global(const unsigned int& idx) const { return global_particles[idx]; }
 
 	/*void _update_parent_active_children_count()
 	{
 		if (parent != nullptr)
 		{
-
 		}
 	}*/
 
@@ -376,7 +385,7 @@ private:
 	/// </remarks>
 	std::set<unsigned int> children_particles;
 
-	ParticleCluster<dim> *parent;
+	ParticleCluster<dim>* parent;
 
 	bool has_particles;
 
@@ -387,7 +396,7 @@ template <unsigned int dim>
 size_t ParticleCluster<dim>::get_children_particle_num_recursive() const
 {
 	size_t output = children_particles.size();
-	for (const auto &c : children_clusters)
+	for (const auto& c : children_clusters)
 	{
 		output += c.second.get_children_particle_num_recursive();
 	}
@@ -395,17 +404,17 @@ size_t ParticleCluster<dim>::get_children_particle_num_recursive() const
 }
 
 template <unsigned int dim>
-void ParticleCluster<dim>::relocate_particle(const unsigned int &p)
+void ParticleCluster<dim>::relocate_particle(const unsigned int& p)
 {
 	bool relocated = false;
-	const Particle<dim> &ref = _get_particle_global(p);
+	const Particle<dim>& ref = _get_particle_global(p);
 	for (unsigned int i = 0; i < dim; ++i)
 	{
 		// If the particle is not within our boundaries
 		if (ref.get_position()[i] > local_max_boundary[i] || ref.get_position()[i] < local_min_boundary[i])
 		{
 			// Relocate
-			parent->relocate_particle(i);
+			parent->relocate_particle(p);
 			relocated = true;
 			break;
 		}
@@ -423,23 +432,29 @@ void ParticleCluster<dim>::relocate_particle(const unsigned int &p)
 template <unsigned int dim>
 void ParticleCluster<dim>::_check_particles_recursive()
 {
-	for (const unsigned int &i : children_particles)
+#pragma omp single
+	for (auto it = children_particles.begin(); it != children_particles.end();)
 	{
-		const Particle<dim> &ref = _get_particle_global(i);
+		bool removed = false;
+		const Particle<dim>& ref = _get_particle_global(*it);
 		for (unsigned int j = 0; j < dim; ++j)
 		{
 			// If particle
 			if (ref.get_position()[j] > local_max_boundary[j] || ref.get_position()[j] < local_min_boundary[j])
 			{
 				// relocate
-				parent->relocate_particle(i);
-				children_particles.erase(i);
+				unsigned int old_value = *it;
+				it = children_particles.erase(it);
+				parent->relocate_particle(old_value);
+				removed = true;
 				break;
 			}
 		}
+		if (!removed)
+			++it;
 	}
 
-	for(auto& c : children_clusters)
+	for (auto& c : children_clusters)
 	{
 		c.second._check_particles_recursive();
 	}
@@ -473,8 +488,23 @@ void ParticleCluster<dim>::_update_boundaries_recursive()
 	if (parent == nullptr)
 	{
 		// We are the main cluster. Update using globals from Particle
-		local_max_boundary = Particle<dim>::get_global_max_boundary();
-		local_min_boundary = Particle<dim>::get_global_min_boundary();
+		local_max_boundary = Particle<dim>::max_boundary + Particle<dim>::max_boundary * .01;
+		local_min_boundary = Particle<dim>::min_boundary + Particle<dim>::min_boundary * .01;
+
+		// Resize to a cube
+
+		double max = local_max_boundary[0], min = local_min_boundary[0];
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			if (local_max_boundary[i] > max) max = local_max_boundary[i];
+			if (local_min_boundary[i] < min) min = local_min_boundary[i];
+		}
+
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			local_max_boundary[i] = max;
+			local_min_boundary[i] = min;
+		}
 	}
 	else
 	{
@@ -495,7 +525,7 @@ void ParticleCluster<dim>::_update_boundaries_recursive()
 }
 
 template <unsigned int dim>
-void ParticleCluster<dim>::add_particle(const unsigned int &p)
+void ParticleCluster<dim>::add_particle(const unsigned int& p)
 {
 	assert(children_particles.find(p) == children_particles.end());
 	if (is_empty())
@@ -521,12 +551,14 @@ void ParticleCluster<dim>::add_particle(const unsigned int &p)
 				assert(children_clusters.find(subscript) != children_clusters.end());
 				children_clusters[subscript].add_particle(p);
 				has_particles = false;
+				assert(children_particles.size() == 0);
 			}
 			else
 			{
 				children_particles.insert(p);
 				active = true;
 				has_particles = true;
+				assert(children_clusters.size() == 0);
 			}
 		}
 		else
@@ -543,9 +575,12 @@ void ParticleCluster<dim>::add_particle(const unsigned int &p)
 				children_particles.insert(p);
 				active = true;
 				has_particles = true;
+				assert(children_clusters.size() == 0);
 			}
 			else
 			{
+				// ACTIVE SUB-CLUSTERS
+
 				/* We will now check whether we could optimise our particles.
 					If some of our sub-clusters have particles, but less than the maximum among all of them, we can take those particles and
 						transfer them to us.
@@ -559,11 +594,13 @@ void ParticleCluster<dim>::add_particle(const unsigned int &p)
 					active = true;
 					has_particles = true;
 
+					assert(children_clusters.size() == 0);
 					assert(get_children_particle_num_recursive() == 0);
 					assert(children_particles.size() <= max_children_particles);
 				}
 				else
 				{
+					// Assign particle to right sub-cluster
 					unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
 					if (children_clusters.find(subscript) == children_clusters.end())
 					{
@@ -584,13 +621,13 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 	assert(!has_particles);
 	assert(children_clusters.size() != 0);
 
-	for (auto &c : children_clusters)
+	for (auto& c : children_clusters)
 	{
 		if (!c.second.contains_particles()) // First gather sub-particles
 		{
 			c.second.__gather_particles_recursive();
 		}
-		for (const unsigned int &i : c.second.children_particles)
+		for (const unsigned int& i : c.second.children_particles)
 		{
 			assert(children_particles.find(i) == children_particles.end());
 			children_particles.insert(i);
@@ -598,11 +635,9 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 		c.second.children_particles.clear();
 		c.second.active = false;
 	}
-
-	remove_all_subclusters_recursive();
 }
 
-template <unsigned int dim>
+template<unsigned int dim>
 void ParticleCluster<dim>::remove_all_subclusters_recursive()
 {
 	/* We are calling this function either during a garbage collection sweep, or when adding a new
@@ -611,7 +646,7 @@ void ParticleCluster<dim>::remove_all_subclusters_recursive()
 	*/
 	assert(get_children_particle_num() == 0);
 	// assert(!is_active());
-	for (auto &p : children_clusters)
+	for (auto& p : children_clusters)
 	{
 		assert(p.second.get_children_particle_num() == 0);
 		assert(!p.second.is_active());
@@ -625,7 +660,7 @@ void ParticleCluster<dim>::remove_all_subclusters_recursive()
 template <unsigned int dim>
 bool ParticleCluster<dim>::_check_has_active_subclusters() const
 {
-	for (const auto &c : children_clusters)
+	for (const auto& c : children_clusters)
 	{
 		if (c.second.is_active())
 			return true;
@@ -641,7 +676,7 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 		This means that the <c>children</c> vector is either filled with at least one particle,
 			or empty.
 	*/
-	assert((contains_particles() || children_clusters.empty()) && children_clusters.empty());
+	assert((contains_particles() && children_clusters.empty()));
 
 	// Stores modulos of each dim (needed for generation later)
 	// dim = 2 --> {2, 4}; dim = 3 --> {2, 4, 8}, etc.
@@ -667,7 +702,7 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 	/*
 		Add old particles to the new appropriate child
 	*/
-	for (const unsigned int &p : children_particles)
+	for (const unsigned int& p : children_particles)
 	{
 		unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
 		children_clusters[subscript].add_particle(p);
@@ -692,8 +727,8 @@ void ParticleCluster<dim>::__create_subcluster_at(const std::array<unsigned int,
 	unsigned int newdepth = nest_depth + 1;
 	unsigned int subscript = _get_cluster_subscript(location);
 	children_clusters.emplace(std::piecewise_construct,
-							  std::forward_as_tuple(subscript),
-							  std::forward_as_tuple(this, newdepth, location));
+		std::forward_as_tuple(subscript),
+		std::forward_as_tuple(this, newdepth, location));
 }
 
 /*ParticleCluster(ParticleCluster<dim>* parent, const unsigned int& depth,
@@ -731,7 +766,7 @@ unsigned int ParticleCluster<dim>::_get_cluster_subscript(const std::array<unsig
 }
 
 template <unsigned int dim>
-std::array<unsigned int, dim> ParticleCluster<dim>::_locate_quadrant_for_particle(const Particle<dim> &p) const
+std::array<unsigned int, dim> ParticleCluster<dim>::_locate_quadrant_for_particle(const Particle<dim>& p) const
 {
 #ifndef NDEBUG
 	for (unsigned int i = 0; i < dim; ++i)
@@ -744,7 +779,7 @@ std::array<unsigned int, dim> ParticleCluster<dim>::_locate_quadrant_for_particl
 	for (unsigned int i = 0; i < dim; ++i)
 	{
 		double step0 = ((p.get_position()[i] - local_min_boundary[i]) / cluster_size[i]) // Get number between 0 and 1
-					   * num_subclusters_per_dim;
+			* num_subclusters_per_dim;
 		candidate_grid_pos[i] = (unsigned int)(step0); // Get a number and truncate it
 	}
 
@@ -759,7 +794,7 @@ std::array<unsigned int, dim> ParticleCluster<dim>::_locate_quadrant_for_particl
 }
 
 template <unsigned int dim>
-unsigned int ParticleCluster<dim>::_locate_subcluster_for_particle(const Particle<dim> &p) const
+unsigned int ParticleCluster<dim>::_locate_subcluster_for_particle(const Particle<dim>& p) const
 {
 	return _get_cluster_subscript(_locate_quadrant_for_particle(p));
 }
@@ -781,7 +816,7 @@ void ParticleCluster<dim>::print_recursive() const
 		if (contains_particles())
 		{
 			std::cout << children_particles.size() << (children_particles.size() > 1 ? " particles." : " particle.") << std::endl;
-			for (const unsigned int &p : children_particles)
+			for (const unsigned int& p : children_particles)
 			{
 				for (unsigned int i = 0; i < nest_depth + 1; ++i)
 					std::cout << "\t";
@@ -791,7 +826,7 @@ void ParticleCluster<dim>::print_recursive() const
 		else
 		{
 			std::cout << children_clusters.size() << (children_clusters.size() > 1 ? " clusters." : " cluster.") << std::endl;
-			for (const auto &p : children_clusters)
+			for (const auto& p : children_clusters)
 			{
 				p.second.print_recursive();
 			}
@@ -803,7 +838,7 @@ template <unsigned int dim>
 size_t ParticleCluster<dim>::get_children_clusters_num_active_recursive() const
 {
 	size_t output = 0;
-	for (const auto &p : children_clusters)
+	for (const auto& p : children_clusters)
 	{
 		if (p.second.is_active())
 		{
@@ -818,7 +853,7 @@ template <unsigned int dim>
 size_t ParticleCluster<dim>::get_children_clusters_num_recursive() const
 {
 	size_t output = 0;
-	for (const auto &p : children_clusters)
+	for (const auto& p : children_clusters)
 	{
 		++output;
 		output += p.second.get_children_clusters_num_recursive();
@@ -941,21 +976,3 @@ void ParticleCluster<dim>::garbage_collect()
 			++it;
 	}
 }
-
-/*template <unsigned int dim>
-unsigned int ParticleCluster<dim>::get_num_subclusters() const
-{
-	unsigned int output = 0;
-	if (children.size() > 0)
-	{
-		for (const std::shared_ptr<Particle<dim>>& p : children)
-		{
-			if (p->isCluster())
-			{
-				++output;
-				output += dynamic_cast<ParticleCluster<dim> *>(p.get())->get_num_subclusters();
-			}
-		}
-	}
-	return output;
-}*/
