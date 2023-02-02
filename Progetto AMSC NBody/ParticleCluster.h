@@ -113,6 +113,7 @@ public:
 	{
 		_update_boundaries_recursive();
 		_check_particles_recursive();
+		_relocate_particles_recursive();
 		_update_physics();
 	}
 
@@ -146,7 +147,7 @@ public:
 	/// This operation may result in some clusters sub-dividing, but at the moment I have no idea how else to implement it.
 	/// </remarks>
 	/// <param name="p"></param>
-	void relocate_particle(const unsigned int& p);
+	//void relocate_particle(const unsigned int& p);
 
 	/// <summary>
 	/// Checks all sub-clusters and eliminates those that are no longer active.
@@ -200,8 +201,27 @@ public:
 		return children_clusters.size() == 0 && children_particles.size() == 0;
 	}
 
+	inline bool can_contain_particle(const Particle<dim>& p)
+	{
+		for (unsigned int i = 0; i < dim; ++i)
+		{
+			if (p.get_position()[i] > local_max_boundary[i] || p.get_position()[i] < local_min_boundary[i])
+			{
+				return false;
+				break;
+			}
+		}
+		return true;
+	}
+
 private:
 	static unsigned int max_cluster_ID;
+
+	/// <summary>
+	/// Checks children for particles that have to be relocated.
+	/// MUST be called after check_particles
+	/// </summary>
+	void _relocate_particles_recursive();
 
 	/// <summary>
 	/// Used to update the boundaries, bottom-down from the father.
@@ -213,6 +233,11 @@ private:
 	/// If not (they have moved), we relocate them.
 	/// </summary>
 	void _check_particles_recursive();
+
+	/// <summary>
+	/// Checks whether all particles belong to this cluster; if they do not, they are added to the relocation set.
+	/// </summary>
+	void _check_particles();
 
 	/// <summary>
 	/// Calculates center of mass, total speed ecc. in a parallel fashion. Called when we have already set all boundaries and checked the particles.
@@ -385,6 +410,8 @@ private:
 	/// </remarks>
 	std::set<unsigned int> children_particles;
 
+	std::set<unsigned int> relocating_particles;
+
 	ParticleCluster<dim>* parent;
 
 	bool has_particles;
@@ -404,6 +431,51 @@ size_t ParticleCluster<dim>::get_children_particle_num_recursive() const
 }
 
 template <unsigned int dim>
+void ParticleCluster<dim>::_relocate_particles_recursive()
+{
+#pragma omp parallel default(private)
+	{
+#pragma omp for
+		for (unsigned int c_idx = 0; c_idx < children_clusters.size(); ++c_idx)
+		{
+			auto c = std::next(children_clusters.begin(), c_idx);
+			// First let sub-cluster gather particles from its sub-clusters.
+			// We assume we already called check_particles, hence all particles 
+			//		that could not be fit anywhere have been stored in relocating_particles.
+			// This call terminates immediately if c contains particles.
+			c->second._relocate_particles_recursive();
+			// Then, we take its relocating particles since it cannot fit them anywhere
+#pragma omp critical
+			relocating_particles.insert(c->second.relocating_particles.begin(), c->second.relocating_particles.end());
+			// In any case, we can count the sub-cluster as having been completed.
+			c->second.relocating_particles.clear();
+		}
+#pragma omp barrier
+#pragma omp single
+		{
+			// For each of our particles that we want to relocate
+			for (auto it = relocating_particles.begin(); it != relocating_particles.end();)
+			{
+				bool removed = false;
+				// If we can contain the particle -> add it to ourselves and we will send it to the appropriate child
+				if (can_contain_particle(_get_particle_global(*it)))
+				{
+					// Relocate
+					add_particle(*it);
+#pragma omp critical
+					removed = true;
+				}
+				if (!removed)
+					++it;
+				else
+					it = relocating_particles.erase(it);
+				// Else, leave them in the vector for the recursion to handle
+			}
+		}
+	}
+}
+
+/*template <unsigned int dim>
 void ParticleCluster<dim>::relocate_particle(const unsigned int& p)
 {
 	bool relocated = false;
@@ -415,6 +487,7 @@ void ParticleCluster<dim>::relocate_particle(const unsigned int& p)
 		{
 			// Relocate
 			parent->relocate_particle(p);
+			//global_relocated_particles.push_back(_get_particle_global(p));
 			relocated = true;
 			break;
 		}
@@ -425,37 +498,96 @@ void ParticleCluster<dim>::relocate_particle(const unsigned int& p)
 		 * We can add it to ourselves.
 		 */
 
-		this->add_particle(p);
+		 /*this->add_particle(p);
+	 }
+ }*/
+
+template <unsigned int dim>
+void ParticleCluster<dim>::_check_particles()
+{
+#pragma omp parallel
+	{
+#pragma omp single
+		{
+#pragma omp task
+			{
+				for (auto it = children_particles.begin(); it != children_particles.end();)
+				{
+					bool removed = false;
+					if (!can_contain_particle(_get_particle_global(*it)))
+					{
+						// Relocate
+						assert(relocating_particles.find(*it) == relocating_particles.end());
+#pragma omp critical
+						relocating_particles.insert(*it);
+						//parent->relocate_particle(*it);
+						removed = true;
+					}
+					if (!removed)
+						++it;
+					else
+						it = children_particles.erase(it);
+				}
+			}
+		}
 	}
 }
 
 template <unsigned int dim>
 void ParticleCluster<dim>::_check_particles_recursive()
 {
-	for (auto& c : children_clusters)
+#pragma omp parallel for
+	for (unsigned int c_idx = 0; c_idx < children_clusters.size(); ++c_idx)
 	{
-		c.second._check_particles_recursive();
-	}
-
-	//#pragma omp single
-	for (auto it = children_particles.begin(); it != children_particles.end();)
-	{
-		bool removed = false;
-		for (unsigned int j = 0; j < dim; ++j)
+		auto c = std::next(children_clusters.begin(), c_idx);
+		if (c->second.contains_particles())
 		{
-			// If particle
-			if (_get_particle_global(*it).get_position()[j] > local_max_boundary[j] || _get_particle_global(*it).get_position()[j] < local_min_boundary[j])
+			c->second._check_particles();
+#pragma omp barrier
+#ifndef DEBUG
+			for (const unsigned int& p : c->second.relocating_particles)
 			{
-				// relocate
-				parent->relocate_particle(*it);
-				removed = true;
-				break;
+				assert(!c->second.can_contain_particle(_get_particle_global(p)));
+				assert(c->second.children_particles.find(p) == c->second.children_particles.end());
 			}
+
+			for (const unsigned int& p : c->second.children_particles)
+			{
+				assert(c->second.can_contain_particle(_get_particle_global(p)));
+				assert(c->second.relocating_particles.find(p) == c->second.relocating_particles.end());
+			}
+
+#endif // !DEBUG
+
+			/*std::vector<unsigned int> to_be_relocated;
+
+			for (auto it = c->second.children_particles.begin(); it != c->second.children_particles.end();)
+			{
+				bool removed = false;
+				for (unsigned int j = 0; j < dim; ++j)
+				{
+					// If particle
+					if (_get_particle_global(*it).get_position()[j] > local_max_boundary[j] || _get_particle_global(*it).get_position()[j] < local_min_boundary[j])
+					{
+						// Relocate
+						to_be_relocated.push_back(*it);
+						//parent->relocate_particle(*it);
+						removed = true;
+						break;
+					}
+				}
+				if (!removed)
+					++it;
+				else
+					it = c->second.children_particles.erase(it);
+			}
+			for (const unsigned int& p : to_be_relocated)
+			{
+				relocate_particle(p);
+			}*/
 		}
-		if (!removed)
-			++it;
 		else
-			it = children_particles.erase(it);
+			c->second._check_particles_recursive();
 	}
 }
 
@@ -615,9 +747,10 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 		for (const unsigned int& i : c->second.children_particles)
 		{
 			assert(children_particles.find(i) == children_particles.end());
-			bool relocated = false;
+			//bool relocated = false;
+			assert(can_contain_particle(_get_particle_global(i)));
 			// If particle is not within our boundaries, forward it to father
-			for (unsigned int j = 0; j < dim; ++j)
+			/*for (unsigned int j = 0; j < dim; ++j)
 			{
 				if (_get_particle_global(i).get_position()[j] > local_max_boundary[j] || _get_particle_global(i).get_position()[j] < local_min_boundary[j])
 				{
@@ -625,13 +758,13 @@ void ParticleCluster<dim>::__gather_particles_recursive()
 					relocated = true;
 					break;
 				}
-			}
+			}*/
 			// If we did not relocate the particle, it means we can keep it
-			if (!relocated)
-			{
+			/*if (!relocated)
+			{*/
 #pragma omp critical
-				children_particles.insert(i);
-			}
+			children_particles.insert(i);
+			//}
 
 		}
 #pragma omp critical
@@ -706,14 +839,17 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 		__create_subcluster_at(this_iteration_ids);
 	}
 
+	//_check_particles();
+
 	/*
 		Add old particles to the new appropriate child
 	*/
 	for (const unsigned int& p : children_particles)
 	{
 		bool relocated = false;
+
 		// If particle is not within our boundaries, forward it to father
-		for (unsigned int j = 0; j < dim; ++j)
+		/*for (unsigned int j = 0; j < dim; ++j)
 		{
 			if (_get_particle_global(p).get_position()[j] > local_max_boundary[j] || _get_particle_global(p).get_position()[j] < local_min_boundary[j])
 			{
@@ -721,7 +857,7 @@ void ParticleCluster<dim>::_create_subclusters_one_level()
 				relocated = true;
 				break;
 			}
-		}
+		}*/
 		if (!relocated)
 		{
 			unsigned int subscript = _locate_subcluster_for_particle(_get_particle_global(p));
@@ -887,7 +1023,10 @@ void ParticleCluster<dim>::_update_physics()
 {
 	if (children_particles.size() == 0)
 	{
-		active = false;
+		if (contains_particles())
+		{
+			active = false;
+		}
 	}
 	else
 	{

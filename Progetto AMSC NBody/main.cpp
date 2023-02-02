@@ -53,6 +53,7 @@ std::string profiling_folder = "";
 std::string profiling_file_name = "Profiler_.txt";
 
 std::vector<Particle<DIM>> global_particles;
+std::vector<Particle<DIM>> global_relocated_particles;
 
 void loadParticles(std::vector<Particle<DIM>> &, const std::string &);
 
@@ -178,6 +179,13 @@ int mainLoop()
 			auto gcol_start = chrono::high_resolution_clock::now();
 
 			main_cluster.garbage_collect();
+
+			for (unsigned int i = 0; i < global_relocated_particles.size(); ++i)
+			{
+				main_cluster.add_particle(global_relocated_particles[i].get_particle_id());
+			}
+			global_relocated_particles.clear();
+
 			auto gcol_end = chrono::high_resolution_clock::now();
 			
 			auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
