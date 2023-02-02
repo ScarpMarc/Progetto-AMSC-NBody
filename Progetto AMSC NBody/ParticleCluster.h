@@ -537,6 +537,7 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 	{
 		if (contains_particles())
 		{
+			assert(!_check_has_active_subclusters());
 			/*
 				All children are particles.
 			*/
@@ -562,6 +563,7 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 		}
 		else
 		{
+			assert(!contains_particles() && children_particles.size() == 0);
 			// All children are other clusters
 			if (!_check_has_active_subclusters())
 			{
@@ -586,7 +588,7 @@ void ParticleCluster<dim>::add_particle(const unsigned int& p)
 					__create_subcluster_at(_locate_quadrant_for_particle(_get_particle_global(p)));
 				}
 				children_clusters[subscript].add_particle(p);
-
+				active = true;
 				assert(!has_particles);
 			}
 		}
@@ -886,6 +888,7 @@ void ParticleCluster<dim>::_update_physics()
 	}
 	else
 	{
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 #pragma omp parallel
 		{
 #pragma omp single
@@ -893,17 +896,26 @@ void ParticleCluster<dim>::_update_physics()
 #pragma omp taskgroup
 				{
 #pragma omp task
+#endif
 					_calc_speed();
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 #pragma omp task
+#endif
 					_calc_acc();
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 #pragma omp task
+#endif
 					_calc_mass();
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 				}
 				// Center of mass depends on total mass, we must run it after the others.
 #pragma omp task
+#endif
 				_calc_center_of_mass();
+#ifndef _WIN32 // Tasks are unsupported by MSVC
 			}
 		}
+#endif
 	}
 }
 
@@ -911,8 +923,10 @@ template <unsigned int dim>
 void ParticleCluster<dim>::_calc_center_of_mass()
 {
 	Vector<dim> temp_pos = {};
+#ifndef _WIN32 // Custom sum not supported by MSVC
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_pos)
+#endif
 	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
 		auto val = std::next(children_particles.begin(), i);
@@ -926,8 +940,10 @@ void ParticleCluster<dim>::_calc_speed()
 {
 	Vector<dim> temp_speed = {};
 	// Reduction declared in Particle.h
+#ifndef _WIN32 // Custom sum not supported by MSVC
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_speed)
+#endif
 	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
 		auto val = std::next(children_particles.begin(), i);
@@ -941,8 +957,10 @@ void ParticleCluster<dim>::_calc_acc()
 {
 	Vector<dim> temp_accel = {};
 	// Reduction declared in Particle.h
+#ifndef _WIN32 // Custom sum not supported by MSVC
 #pragma omp parallel for reduction(VectorSum \
 								   : temp_accel)
+#endif
 	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
 		auto val = std::next(children_particles.begin(), i);
@@ -956,8 +974,10 @@ void ParticleCluster<dim>::_calc_mass()
 {
 	double temp_mass = 0;
 	// Reduction declared in Particle.h
+#ifndef _WIN32 // Custom sum not supported by MSVC
 #pragma omp parallel for reduction(+ \
 								   : temp_mass)
+#endif
 	for (unsigned int i = 0; i < children_particles.size(); ++i)
 	{
 		auto val = std::next(children_particles.begin(), i);
@@ -987,7 +1007,7 @@ void ParticleCluster<dim>::garbage_collect()
 			assert(children_particles.size() <= max_children_particles);
 		}
 	}
-	// We can use OMP since no two clusters share the same parent.
+	
 #pragma omp parallel for
 	for (unsigned int i = 0; i < children_clusters.size(); ++i)
 	{
@@ -1000,6 +1020,7 @@ void ParticleCluster<dim>::garbage_collect()
 		{
 			c->second.garbage_collect();
 		}
+	}
 
 		for (auto it = children_clusters.begin(); it != children_clusters.end();)
 		{
@@ -1008,5 +1029,5 @@ void ParticleCluster<dim>::garbage_collect()
 			else
 				++it;
 		}
-	}
+	
 }
