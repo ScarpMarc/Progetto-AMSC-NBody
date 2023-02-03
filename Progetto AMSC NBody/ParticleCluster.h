@@ -1063,7 +1063,7 @@ size_t ParticleCluster<dim>::garbage_collect()
 		}
 	}
 #ifndef _WIN32
-#pragma omp parallel for reduction(func_out)
+#pragma omp parallel for reduction(+: func_out)
 #endif
 	for (unsigned int i = 0; i < children_clusters.size(); ++i)
 	{
