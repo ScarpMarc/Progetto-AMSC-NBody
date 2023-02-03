@@ -319,7 +319,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
 
-		/*cluster_amt = main_cluster->get_children_clusters_num_recursive();
+		/*cluster_amt = main_cluster->get_subclusters_num_recursive();
 
 		glBindVertexArray(VertexArrayID_boundaries);
 		for (int i = 0; i < clusters->size(); i++)

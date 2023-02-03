@@ -33,7 +33,9 @@ public:
 			if (max_boundary[d] < pos[d]) max_boundary[d] = pos[d];
 			if (min_boundary[d] > pos[d]) min_boundary[d] = pos[d];
 		}
-
+		// Inverted because we want the minimum boundary at all times and we check against these temporary values
+		max_boundary_temp = min_boundary;
+		min_boundary_temp = max_boundary;
 		++maxID;
 	}
 	/// <summary>
@@ -124,8 +126,10 @@ public:
 	inline const unsigned int& get_particle_id() const { return ID; }
 
 	inline static const Vector<dim>& get_global_max_boundary() { return max_boundary; }
+	//inline static void set_global_max_boundary(const Vector<dim>& new_boundary) { max_boundary = new_boundary; }
 
 	inline static const Vector<dim>& get_global_min_boundary() { return min_boundary; }
+	//inline static void set_global_min_boundary(const Vector<dim>& new_boundary) { min_boundary = new_boundary; }
 
 	virtual inline bool isCluster() const { return false; }
 
@@ -149,7 +153,9 @@ protected:
 	const double tol = 1e-3;
 
 	static Vector<dim> max_boundary; // Updated by clusters
+	static Vector<dim> max_boundary_temp; // Updated by clusters
 	static Vector<dim> min_boundary; // Updated by clusters
+	static Vector<dim> min_boundary_temp; // Updated by clusters
 
 private:
 	static unsigned int maxID;
@@ -231,8 +237,8 @@ void Particle<dim>::_updatePos(const unsigned int& delta_ticks)
 
 #pragma omp critical
 		{
-			if (max_boundary[i] < pos[i]) max_boundary[i] = pos[i];
-			if (min_boundary[i] > pos[i]) min_boundary[i] = pos[i];
+			if (max_boundary_temp[i] < pos[i]) max_boundary_temp[i] = pos[i];
+			if (min_boundary_temp[i] > pos[i]) min_boundary_temp[i] = pos[i];
 		}
 	}
 }
