@@ -46,7 +46,7 @@ int do_simulation_step(std::vector<Particle<dim>>& particles, const unsigned int
 
 				temp[component] = component_force_on_particle;
 			}*/
-			for (int j = 1; j < particles.size(); ++j)
+			for (unsigned int j = 1; j < particles.size(); ++j)
 			{
 				temp += particles[i].calcForceCoefficients(particles[(i + j) % particles.size()]);
 			}
