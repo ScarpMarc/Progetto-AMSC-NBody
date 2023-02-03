@@ -41,13 +41,17 @@ template <unsigned int dim>
 Vector<dim> Particle<dim>::max_boundary({0, 0, 0});
 template <unsigned int dim>
 Vector<dim> Particle<dim>::min_boundary({0, 0, 0});
+template <unsigned int dim>
+Vector<dim> Particle<dim>::max_boundary_temp({0, 0, 0});
+template <unsigned int dim>
+Vector<dim> Particle<dim>::min_boundary_temp({0, 0, 0});
 
 using namespace std;
 
 long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
 void saveParticles(const std::vector<Particle<DIM>> &, const std::string &);
 
-extern long long int total_sim_duration = 0;
+long long int total_sim_duration = 0;
 time_t programme_start;
 std::string profiling_folder = "";
 std::string profiling_file_name = "Profiler_.txt";
@@ -136,9 +140,9 @@ int mainLoop()
 
 	auto clustering_duration = chrono::duration_cast<chrono::microseconds>(clustering_end - clustering_start);
 	cout << "Duration of clustering process: " << clustering_duration.count() << "us" << endl;
-	cout << "There are " << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active clusters." << endl;
-	cout << "There are " << main_cluster.get_children_clusters_num_recursive() + 1 << " clusters in total." << endl;
-	cout << "There are " << main_cluster.get_children_particle_num_recursive() << " particles in total." << endl;
+	cout << "There are " << main_cluster.get_active_subclusters_num_recursive() + 1 << " active clusters." << endl;
+	cout << "There are " << main_cluster.get_subclusters_num() + 1 << " clusters in total." << endl;
+	cout << "There are " << main_cluster.get_particle_num_recursive() << " particles in total." << endl;
 
 	Vector<DIM> temp;
 	unsigned int time(0);
@@ -175,7 +179,7 @@ int mainLoop()
 			cout << endl;
 
 			// main_cluster.print_recursive();
-			cout << "CLUSTERS: " << main_cluster.get_children_clusters_num_recursive() + 1 << " (" << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active)" << endl;
+			cout << "CLUSTERS: " << main_cluster.get_active_subclusters_num_recursive() + 1 << " (" << main_cluster.get_active_subclusters_num_recursive() + 1 << " active)" << endl;
 			auto gcol_start = chrono::high_resolution_clock::now();
 
 			size_t eliminated = main_cluster.garbage_collect();
@@ -188,12 +192,12 @@ int mainLoop()
 			cout << "Current boundaries: MIN: ";
 			for (unsigned int i = 0; i < DIM; ++i)
 			{
-				cout << Particle<DIM>::get_global_min_boundary()[i] << " ";
+				cout << main_cluster.get_max_boundary()[i] << " ";
 			}
 			cout << ", MAX: ";
 			for (unsigned int i = 0; i < DIM; ++i)
 			{
-				cout << Particle<DIM>::get_global_max_boundary()[i] << " ";
+				cout << main_cluster.get_min_boundary()[i] << " ";
 			}
 			cout << endl
 				 << endl;
