@@ -837,7 +837,7 @@ std::array<unsigned int, dim> ParticleCluster<dim>::_locate_quadrant_for_particl
 #ifndef NDEBUG
 	for (unsigned int i = 0; i < dim; ++i)
 	{
-		assert(p.get_position()[i] >= local_min_boundary[i] && p.get_position()[i] <= local_max_boundary[i]);
+		assert(_get_particle_global(p).get_position()[i] >= local_min_boundary[i] && _get_particle_global(p).get_position()[i] <= local_max_boundary[i]);
 	}
 #endif
 	const Particle<dim>& pref = _get_particle_global(p);
