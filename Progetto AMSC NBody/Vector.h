@@ -37,7 +37,7 @@ public:
 	/// Retrieves the const vector component corresponding to the argument, starting from 0.
 	/// </summary>
 	/// <typeparam name="dim">The component to retrieve</typeparam>
-	double operator[](const unsigned int& comp) const
+	const double operator[](const unsigned int& comp) const
 	{
 		return components[comp];
 	}

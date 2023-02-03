@@ -113,14 +113,14 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 	std::mt19937 gen(rd()); // seed the generator
 	std::uniform_int_distribution<> distr(0, 6); // define the range
 
-	/*std::array<std::array<unsigned char, 3>, 7> stars = {
+	std::array<std::array<unsigned char, 3>, 7> stars = {
 		155, 176, 255,
 		170, 191, 255,
 		202, 215, 255,
 		248, 247, 255,
 		255, 244, 234,
 		255, 210, 161,
-		255, 204, 111 };*/
+		255, 204, 111 };
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -211,7 +211,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 		glm::mat4 ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
 		int ParticlesCount = 0;
 
-		for (unsigned int i = 0; i < particles->size(); i++)
+		for (int i = 0; i < particles->size(); i++)
 		{
 			Particle<dim>& p = particles->at(i); // shortcut
 

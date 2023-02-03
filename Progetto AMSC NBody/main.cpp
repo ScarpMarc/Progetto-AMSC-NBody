@@ -47,7 +47,7 @@ using namespace std;
 long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
 void saveParticles(const std::vector<Particle<DIM>> &, const std::string &);
 
-long long int total_sim_duration = 0;
+extern long long int total_sim_duration = 0;
 time_t programme_start;
 std::string profiling_folder = "";
 std::string profiling_file_name = "Profiler_.txt";

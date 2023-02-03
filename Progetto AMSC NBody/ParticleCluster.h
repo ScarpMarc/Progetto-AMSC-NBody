@@ -31,7 +31,7 @@ public:
 	/// <summary>
 	/// Default constructor which initialises all properties to 0, same as the default constructor of Particle.
 	/// </summary>
-	ParticleCluster() : Particle<dim>(max_cluster_ID), nest_depth(0), grid_pos(std::array<unsigned int, dim>{}),
+	ParticleCluster() : Particle<dim>(max_cluster_ID), nest_depth(0), grid_pos(std::array<unsigned int, dim>{}), last_boundary_update(0),
 		parent(nullptr), has_particles(false)
 	{
 		// Brutal hack to avoid having particles exactly on the edge
@@ -85,7 +85,7 @@ public:
 	/// </summary>
 	ParticleCluster(ParticleCluster<dim>* parent, const unsigned int& depth,
 		const std::array<unsigned int, dim>& grid_pos) : Particle<dim>(max_cluster_ID), nest_depth(depth), grid_pos(grid_pos),
-		parent(parent), has_particles(false)
+		last_boundary_update(0), parent(parent), has_particles(false)
 	{
 		for (unsigned int i = 0; i < dim; ++i)
 		{
@@ -422,8 +422,10 @@ private:
 	std::set<unsigned int> relocating_particles;
 
 	ParticleCluster<dim>* parent;
-	//unsigned int last_boundary_update;
+
 	bool has_particles;
+
+	unsigned int last_boundary_update;
 };
 
 template <unsigned int dim>
@@ -481,6 +483,33 @@ void ParticleCluster<dim>::_relocate_particles_recursive()
 		}
 	}
 }
+
+/*template <unsigned int dim>
+void ParticleCluster<dim>::relocate_particle(const unsigned int& p)
+{
+	bool relocated = false;
+	const Particle<dim>& ref = _get_particle_global(p);
+	for (unsigned int i = 0; i < dim; ++i)
+	{
+		// If the particle is not within our boundaries
+		if (ref.get_position()[i] > local_max_boundary[i] || ref.get_position()[i] < local_min_boundary[i])
+		{
+			// Relocate
+			parent->relocate_particle(p);
+			//global_relocated_particles.push_back(_get_particle_global(p));
+			relocated = true;
+			break;
+		}
+	}
+	if (!relocated)
+	{
+		/* If we get here it means that the particle actually was within boundaries.
+		 * We can add it to ourselves.
+		 */
+
+		 /*this->add_particle(p);
+	 }
+ }*/
 
 template <unsigned int dim>
 void ParticleCluster<dim>::_check_particles()
@@ -1141,7 +1170,7 @@ size_t ParticleCluster<dim>::garbage_collect()
 		}
 	}
 #ifndef _WIN32
-#pragma omp parallel for reduction(+: func_out)
+#pragma omp parallel for reduction(func_out)
 #endif
 	for (unsigned int i = 0; i < children_clusters.size(); ++i)
 	{

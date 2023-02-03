@@ -225,7 +225,7 @@ void Particle<dim>::_updateSpeed(const unsigned int& delta_ticks)
 template<unsigned int dim>
 void Particle<dim>::_updatePos(const unsigned int& delta_ticks)
 {
-	for (unsigned int i = 0; i < dim; ++i)
+	for (int i = 0; i < dim; ++i)
 	{
 		pos[i] += speed[i] * ((double)delta_ticks / ticks_per_second);
 
