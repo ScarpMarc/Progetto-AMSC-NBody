@@ -113,7 +113,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 	std::mt19937 gen(rd()); // seed the generator
 	std::uniform_int_distribution<> distr(0, 6); // define the range
 
-	std::array<std::array<unsigned char, 3>, 7> stars = {
+	/*std::array<std::array<unsigned char, 3>, 7> stars = {
 		155, 176, 255,
 		170, 191, 255,
 		202, 215, 255,
@@ -121,7 +121,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 		255, 244, 234,
 		255, 210, 161,
 		255, 204, 111 };
-
+		*/
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
@@ -211,7 +211,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 		glm::mat4 ViewProjectionMatrix = ProjectionMatrix * ViewMatrix;
 		int ParticlesCount = 0;
 
-		for (int i = 0; i < particles->size(); i++)
+		for (size_t i = 0; i < particles->size(); i++)
 		{
 			Particle<dim>& p = particles->at(i); // shortcut
 
@@ -224,7 +224,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 			g_particule_position_size_data[4 * i + 2] = (GLfloat)(p.get_position()[2]) / screenResX;
 			g_particule_position_size_data[4 * i + 3] = .01; // p.getMass();
 
-			int thisColIdx = distr(gen);
+			//int thisColIdx = distr(gen);
 			//g_particule_color_data[4 * i + 0] = stars[thisColIdx][0];	 // p.r;
 			//g_particule_color_data[4 * i + 1] = stars[thisColIdx][1];	 // p.g;
 			//g_particule_color_data[4 * i + 2] = stars[thisColIdx][2];	 // p.b;
@@ -319,7 +319,7 @@ void drawParticles(GLFWwindow** window, std::vector<Particle<dim>>* particles/*,
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
 
-		/*cluster_amt = main_cluster->get_children_clusters_num_recursive();
+		/*cluster_amt = main_cluster->get_subclusters_num_recursive();
 
 		glBindVertexArray(VertexArrayID_boundaries);
 		for (int i = 0; i < clusters->size(); i++)

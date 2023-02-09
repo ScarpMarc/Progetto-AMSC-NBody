@@ -113,13 +113,14 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_GRAPHICS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-      <UndefinePreprocessorDefinitions>USE_GRAPHICS;</UndefinePreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <AdditionalOptions>-openmp:llvm %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -137,7 +138,7 @@
       <WarningLevel>Level4</WarningLevel>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_GRAPHICS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -145,7 +146,8 @@
       <Optimization>Full</Optimization>
       <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-      <UndefinePreprocessorDefinitions>USE_GRAPHICS</UndefinePreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
@@ -165,11 +167,8 @@
     <ClCompile Include="Controls.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OpenGLFunctions.cpp" />
-    <ClCompile Include="Particle.cpp" />
-    <ClCompile Include="ParticleCluster.cpp" />
     <ClCompile Include="Profiling.cpp" />
     <ClCompile Include="shader.cpp" />
-    <ClCompile Include="Visualisation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constants.h" />
