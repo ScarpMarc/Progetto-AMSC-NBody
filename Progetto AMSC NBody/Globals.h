@@ -10,16 +10,18 @@
 #define ADVANCED_PROFILING
 
 #ifdef ADVANCED_PROFILING
-//#include <chrono>
-//#include <array>
+// #include <chrono>
+// #include <array>
 #include "Constants.h"
 
 // All in microseconds
-extern long long int forceComp_mean_durations_per_tick, posComp_mean_durations_per_tick, matrixComp_mean_duration;
+extern long long int forceComp_mean_durations_per_tick, posComp_mean_durations_per_tick, matrixComp_mean_duration,
+    garbage_collecting_mean_duration,
+    update_mean_duration;
+extern unsigned int mean_eliminated_clusters;
 #endif
 
 extern long long int total_sim_duration;
-
 
 #include <ctime>
 extern time_t programme_start;

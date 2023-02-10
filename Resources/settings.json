@@ -1,10 +1,10 @@
 {
     "DIM":"3",
     "max_ticks":"1000",
-    "ticks_per_second":"10",
+    "ticks_per_second":".01",
     "screen_refresh_millis":"100",
     "screenResX":"2048",
     "screenResY":"2048",
     "save_status_interval":"100",
-    "total_particles":"3000"
+    "total_particles":"1000"
 }

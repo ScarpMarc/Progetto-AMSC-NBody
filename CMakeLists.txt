@@ -2,14 +2,56 @@
 # e includere qui i sottoprogetti.
 #
 cmake_minimum_required (VERSION 3.20)
+include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeVarious/OptimizeForArchitecture.cmake)
 
 project ("Progetto AMSC NBody")
+
+OptimizeForArchitecture()
 
 SET(NO_GRAPHICS "OFF" CACHE BOOL "Force graphics OFF")
 
 if(NO_GRAPHICS)
     message("Compiling WITHOUT graphics")
 endif()
+
+option(SCOREP_ENABLE "Create PIConGPU with Score-P support" OFF)
+
+if(SCOREP_ENABLE)
+    message(STATUS "Building with Score-P support")
+    set(SCOREP_ROOT "$ENV{SCOREP_ROOT}")
+    if(NOT SCOREP_ROOT)
+        message(FATAL_ERROR "Environment variable SCOREP_ROOT not set!")
+    endif(NOT SCOREP_ROOT)
+
+    # compile flags
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --nocompiler --cflags
+                    OUTPUT_VARIABLE SCOREP_COMPILEFLAGS
+                    RESULT_VARIABLE SCOREP_CONFIG_RETURN)
+    if(NOT SCOREP_CONFIG_RETURN EQUAL 0)
+        message(FATAL_ERROR "Can NOT execute 'scorep-config' at $ENV{SCOREP_ROOT}/bin/scorep-config - check file permissions")
+    endif()
+
+    # link flags
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --mpp=none --thread=omp --ldflags
+                    OUTPUT_VARIABLE SCOREP_LINKFLAGS)
+    # libraries
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --mpp=none --thread=omp --libs
+                    OUTPUT_VARIABLE SCOREP_LIBFLAGS)
+    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
+
+    # subsystem iniialization file
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --mpp=none --thread=omp --adapter-init
+                    OUTPUT_VARIABLE SCOREP_INIT_FILE)
+    file(WRITE ${CMAKE_BINARY_DIR}/scorep_init.c "${SCOREP_INIT_FILE}")
+
+    if(SCOREP_ENABLE)
+        set(SCOREP_SRCFILES "${CMAKE_BINARY_DIR}/scorep_init.c")
+    endif(SCOREP_ENABLE)
+
+    # modify our flags
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${SCOREP_LINKFLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SCOREP_COMPILEFLAGS}")
+endif(SCOREP_ENABLE)
 
 if(NOT NO_GRAPHICS)
     find_package(OpenGL OPTIONAL_COMPONENTS OpenGL)

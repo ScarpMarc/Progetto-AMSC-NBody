@@ -48,7 +48,11 @@ Vector<dim> Particle<dim>::min_boundary_temp({0, 0, 0});
 
 using namespace std;
 
-long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
+long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0,
+			  garbage_collecting_mean_duration = 0,
+			  update_mean_duration = 0;
+unsigned int mean_eliminated_clusters = 0;
+
 void saveParticles(const std::vector<Particle<DIM>> &, const std::string &);
 
 long long int total_sim_duration = 0;
@@ -88,6 +92,7 @@ extern "C"
 
 int mainLoop()
 {
+	vector<unsigned int> el_clusters;
 	total_sim_duration = 0;
 
 	if (load_particles_from_file)
@@ -148,7 +153,7 @@ int mainLoop()
 	unsigned int time(0);
 
 	auto simstart = chrono::high_resolution_clock::now();
-
+	unsigned long g_amt = 0;
 	// UPDATE SECTION
 	for (time = 0; time < max_ticks; ++time)
 	{
@@ -172,9 +177,12 @@ int mainLoop()
 		main_cluster.TEST_update();
 		auto update_end = chrono::high_resolution_clock::now();
 		update_duration_this_tick = chrono::duration_cast<chrono::microseconds>(update_end - update_start);
+		update_mean_duration += update_duration_this_tick.count();
 
 		if (!(time % (max_ticks / 100)))
 		{
+			++g_amt;
+
 			cout << " --- Execution time: " << std::setw(15) << matrixComp_duration_this_tick.count() << " us";
 			cout << endl;
 
@@ -185,9 +193,11 @@ int mainLoop()
 			size_t eliminated = main_cluster.garbage_collect();
 
 			auto gcol_end = chrono::high_resolution_clock::now();
-			
+			el_clusters.push_back(eliminated);
+			mean_eliminated_clusters += eliminated;
+
 			auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
-			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us (eliminated " << eliminated <<" clusters)"
+			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us (eliminated " << eliminated << " clusters)"
 				 << " -- Update: " << update_duration_this_tick.count() << "us" << endl;
 			cout << "Current boundaries: MIN: ";
 			for (unsigned int i = 0; i < DIM; ++i)
@@ -201,12 +211,15 @@ int mainLoop()
 			}
 			cout << endl
 				 << endl;
+
+			garbage_collecting_mean_duration += gcol_duration.count();
 		}
 
 		if (!(time % save_status_interval))
 		{
 			saveParticles(global_particles, save_filename);
 		}
+
 		/*
 		if (time == 0 || time == max_ticks - 1)
 		{
@@ -237,6 +250,9 @@ int mainLoop()
 	} // For time
 	// Calculate mean time
 	matrixComp_mean_duration /= max_ticks;
+	garbage_collecting_mean_duration /= g_amt;
+	update_mean_duration /= max_ticks;
+	mean_eliminated_clusters /= g_amt;
 
 	// Calculate total execution time
 	auto simend = chrono::high_resolution_clock::now();
@@ -246,6 +262,13 @@ int mainLoop()
 	total_sim_duration = simduration.count();
 
 	save_profiler_data_text_file(profiling_folder + profiling_file_name);
+
+	ofstream csv_el_clusters("elimC.csv");
+	csv_el_clusters << total_particles <<"," << ticks_per_second << endl;
+	for (const unsigned int &i : el_clusters)
+	{
+		csv_el_clusters << i << ",";
+	}
 
 	return 0;
 }

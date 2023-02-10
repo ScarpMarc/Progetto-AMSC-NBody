@@ -25,5 +25,10 @@ void save_profiler_data_text_file(const std::filesystem::path& path_to_file)
 	file_out << "--- TIMING AND THREADS INFO ---" << endl;
 	file_out << "Total duration: " << std::setw(15) << total_sim_duration / 1000 << " ms" << endl;
 	file_out << "Iteration mean duration: " << std::setw(15) << matrixComp_mean_duration << " us" << endl;
+
+	file_out << "Garbage collecting mean duration: " << std::setw(15) << garbage_collecting_mean_duration << " us" << endl;
+	file_out << "Cluster update mean duration: " << std::setw(15) << update_mean_duration << " us" << endl;
+	file_out << "Clusters eliminated on average: " << mean_eliminated_clusters << endl;
+    
 	file_out.close();
 }
