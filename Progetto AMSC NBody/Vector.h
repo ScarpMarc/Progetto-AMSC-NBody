@@ -4,6 +4,7 @@
 #include <cmath>
 #include <istream>
 #include <ostream>
+#include "Constants.h"
 
 template <unsigned int dim>
 class Vector
@@ -36,7 +37,7 @@ public:
 	/// Retrieves the const vector component corresponding to the argument, starting from 0.
 	/// </summary>
 	/// <typeparam name="dim">The component to retrieve</typeparam>
-	const double operator[](const unsigned int& comp) const
+	double operator[](const unsigned int& comp) const
 	{
 		return components[comp];
 	}
@@ -242,6 +243,10 @@ public:
 private:
 	std::array<double, dim> components;
 };
+
+#ifndef _WIN32 // VS supports only OpenMP 2.0 and a few OMP3.0 directives. This is unsupported.
+#pragma omp declare reduction (VectorSum : Vector<DIM> : omp_out = omp_out + omp_in) initializer (omp_priv=Vector<DIM>())
+#endif
 
 template <unsigned int dim>
 std::ostream& operator<<(std::ostream& out, const Vector<dim>& vec)

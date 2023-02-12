@@ -26,34 +26,38 @@
 #include "Globals.h"
 
 // Must do initialisation in a source file
-template<unsigned int dim>
+template <unsigned int dim>
 unsigned int Particle<dim>::maxID = 0;
 
 // Must do initialisation in a source file
-template<unsigned int dim>
-unsigned int ParticleCluster<dim>::maxID = 0;
-template<unsigned int dim>
+template <unsigned int dim>
+unsigned int ParticleCluster<dim>::max_cluster_ID = 0;
+template <unsigned int dim>
 unsigned int ParticleCluster<dim>::max_children_particles = 8;
-template<unsigned int dim>
-unsigned int ParticleCluster<dim>::num_subclusters = 8;
+template <unsigned int dim>
+unsigned int ParticleCluster<dim>::num_subclusters_per_dim = 2;
 
-template<unsigned int dim>
-Vector<dim> Particle<dim>::max_boundary; 
-template<unsigned int dim>
-Vector<dim> Particle<dim>::min_boundary;
+template <unsigned int dim>
+Vector<dim> Particle<dim>::max_boundary({0, 0, 0});
+template <unsigned int dim>
+Vector<dim> Particle<dim>::min_boundary({0, 0, 0});
+template <unsigned int dim>
+Vector<dim> Particle<dim>::max_boundary_temp({0, 0, 0});
+template <unsigned int dim>
+Vector<dim> Particle<dim>::min_boundary_temp({0, 0, 0});
 
 using namespace std;
 
 long long int forceComp_mean_durations_per_tick = 0, posComp_mean_durations_per_tick = 0, matrixComp_mean_duration = 0;
 void saveParticles(const std::vector<Particle<DIM>> &, const std::string &);
 
-extern long long int total_sim_duration = 0;
+long long int total_sim_duration = 0;
 time_t programme_start;
 std::string profiling_folder = "";
 std::string profiling_file_name = "Profiler_.txt";
 
-// vector of Particle objects
-std::vector<Particle<DIM>> particles;
+std::vector<Particle<DIM>> global_particles;
+std::vector<Particle<DIM>> global_relocated_particles;
 
 void loadParticles(std::vector<Particle<DIM>> &, const std::string &);
 
@@ -89,7 +93,7 @@ int mainLoop()
 	if (load_particles_from_file)
 	{
 		std::cout << "Attempting to load particle file..." << std::endl;
-		loadParticles(particles, load_filename);
+		loadParticles(global_particles, load_filename);
 		std::cout << "Particle file loaded." << std::endl;
 	}
 	else
@@ -98,13 +102,13 @@ int mainLoop()
 		JsonParser parser("");
 		parser.parse();
 
-		std::srand(std::time(NULL));
+		std::srand((unsigned int)std::time(NULL));
 
 		programme_start = time(0);
 
 		std::cout << "JSON file loaded." << std::endl;
 
-		for (int i = 0; i < total_particles; i++)
+		for (unsigned int i = 0; i < total_particles; i++)
 		{
 			Vector<DIM> position, speed, acceleration;
 			// generate mass
@@ -116,11 +120,29 @@ int mainLoop()
 			acceleration = Vector<DIM>({0.0, 0.0, 0.0});
 
 			// generate particle
-			particles.emplace_back(position, speed, acceleration, mass);
+			global_particles.emplace_back(position, speed, acceleration, mass);
 		}
 
 		std::cout << "Particles generated." << std::endl;
 	}
+
+	auto clustering_start = chrono::high_resolution_clock::now();
+
+	ParticleCluster<DIM> main_cluster;
+	for (unsigned int i = 0; i < total_particles; i++)
+	{
+		main_cluster.add_particle(i);
+	}
+
+	auto clustering_end = chrono::high_resolution_clock::now();
+
+	// main_cluster.print_recursive();
+
+	auto clustering_duration = chrono::duration_cast<chrono::microseconds>(clustering_end - clustering_start);
+	cout << "Duration of clustering process: " << clustering_duration.count() << "us" << endl;
+	cout << "There are " << main_cluster.get_active_subclusters_num_recursive() + 1 << " active clusters." << endl;
+	cout << "There are " << main_cluster.get_subclusters_num() + 1 << " clusters in total." << endl;
+	cout << "There are " << main_cluster.get_particle_num_recursive() << " particles in total." << endl;
 
 	Vector<DIM> temp;
 	unsigned int time(0);
@@ -140,6 +162,8 @@ int mainLoop()
 		//main_cluster.print_recursive();
 		do_simulation_step(global_particles, 1);
 
+		do_simulation_step(global_particles, 1);
+
 		// compute forces
 		auto matrixComp_end = chrono::high_resolution_clock::now();
 		matrixComp_duration_this_tick = chrono::duration_cast<chrono::microseconds>(matrixComp_end - matrixComp_start);
@@ -147,34 +171,35 @@ int mainLoop()
 
 		std::chrono::microseconds update_duration_this_tick;
 		auto update_start = chrono::high_resolution_clock::now();
-		//main_cluster.TEST_update();
+		main_cluster.TEST_update();
 		auto update_end = chrono::high_resolution_clock::now();
 		update_duration_this_tick = chrono::duration_cast<chrono::microseconds>(update_end - update_start);
 
-		if (!(time % (max_ticks / 10)))
+		if (!(time % (max_ticks / 100)))
 		{
 			cout << " --- Execution time: " << std::setw(15) << matrixComp_duration_this_tick.count() << " us";
 			cout << endl;
 
-			
-			cout << "CLUSTERS: " << main_cluster.get_children_clusters_num_recursive() + 1 << " (" << main_cluster.get_children_clusters_num_active_recursive() + 1 << " active)" << endl;
+			// main_cluster.print_recursive();
+			cout << "CLUSTERS: " << main_cluster.get_active_subclusters_num_recursive() + 1 << " (" << main_cluster.get_active_subclusters_num_recursive() + 1 << " active)" << endl;
 			auto gcol_start = chrono::high_resolution_clock::now();
 
-			main_cluster.garbage_collect();
+			size_t eliminated = main_cluster.garbage_collect();
 
 			auto gcol_end = chrono::high_resolution_clock::now();
-			cout << "Current boundaries: MIN: ";
+			
 			auto gcol_duration = chrono::duration_cast<chrono::microseconds>(gcol_end - gcol_start);
-			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us"
+			cout << "TIMING: Garbage-collect: " << gcol_duration.count() << "us (eliminated " << eliminated <<" clusters)"
 				 << " -- Update: " << update_duration_this_tick.count() << "us" << endl;
+			cout << "Current boundaries: MIN: ";
 			for (unsigned int i = 0; i < DIM; ++i)
 			{
-				cout << Particle<DIM>::get_global_min_boundary()[i] << " ";
+				cout << main_cluster.get_max_boundary()[i] << " ";
 			}
 			cout << ", MAX: ";
 			for (unsigned int i = 0; i < DIM; ++i)
 			{
-				cout << Particle<DIM>::get_global_max_boundary()[i] << " ";
+				cout << main_cluster.get_min_boundary()[i] << " ";
 			}
 			cout << endl
 				 << endl;
@@ -182,7 +207,7 @@ int mainLoop()
 
 		if (!(time % save_status_interval))
 		{
-			saveParticles(particles, save_filename);
+			saveParticles(global_particles, save_filename);
 		}
 		/*
 		if (time == 0 || time == max_ticks - 1)
@@ -227,7 +252,7 @@ int mainLoop()
 	return 0;
 }
 
-int main(int argc, char **argv)
+int main()
 {
 #ifdef USE_GRAPHICS
 	use_graphics = true;
@@ -255,7 +280,7 @@ int main(int argc, char **argv)
 		return 2;
 	}*/
 #ifdef USE_GRAPHICS
-	GLFWwindow* window = nullptr;
+	GLFWwindow *window = nullptr;
 	if (use_graphics)
 	{
 		gl_init(&window);
@@ -272,7 +297,7 @@ int main(int argc, char **argv)
 #ifdef USE_GRAPHICS
 	if (use_graphics)
 	{
-		drawParticles(&window, &particles);
+		drawParticles(&window, &global_particles);
 		// std::thread t1(&drawParticles<DIM>, &window, &particles);
 
 		glfwTerminate();
@@ -322,7 +347,7 @@ void loadParticles(std::vector<Particle<DIM>> &particles, const std::string &fil
 	}
 
 	infile.read(reinterpret_cast<char *>(&total_particles), sizeof(unsigned int));
-	for (int i = 0; i < total_particles; i++)
+	for (unsigned int i = 0; i < total_particles; i++)
 	{
 		Particle<DIM> particle;
 		particle.loadFromFile(infile);

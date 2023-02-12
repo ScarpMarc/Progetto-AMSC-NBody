@@ -36,15 +36,6 @@
     <ClCompile Include="Profiling.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleCluster.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
-    <ClCompile Include="Particle.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
-    <ClCompile Include="Visualisation.cpp">
-      <Filter>File di origine\Graphics</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
